@@ -2,6 +2,7 @@ package com.hushijie.hccamera;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
+import android.content.Context;
 import android.telephony.TelephonyManager;
 
 
@@ -9,7 +10,6 @@ import com.hushijie.hccamera.activity.WifiActivity;
 import com.hushijie.hccamera.entity.DeviceInfo;
 import com.hushijie.hccamera.receiver.BluetoothInstructionReceiver;
 import com.hushijie.hccamera.utils.Logs;
-import com.hushijie.hccamera.utils.ProperUtil;
 import com.hushijie.hccamera.utils.SharedPreferencesUtil;
 import com.hushijie.hccamera.utils.ToastUtils;
 import com.tencent.TIMManager;
@@ -33,6 +33,12 @@ public class MyApplication extends Application {
      */
     DeviceInfo deviceInfo;
 
+    /**
+     * 全局上下文
+     */
+    private static Context context;
+
+
     private static MyApplication mInstance;
 
     public static MyApplication getInstance() {
@@ -42,9 +48,15 @@ public class MyApplication extends Application {
         return mInstance;
     }
 
+    public static Context getContext() {
+        return context;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
+        context = getApplicationContext();
+
         //初始化设备信息
         deviceInfo = new DeviceInfo();
         String wifiSSID = SharedPreferencesUtil.getInstance(this).getSP(WifiActivity.SP_KEY_WIFI_SSID);
@@ -68,16 +80,15 @@ public class MyApplication extends Application {
         JPushInterface.setAlias(this, 0, alias);
         //初始化腾讯云
         ILiveSDK.getInstance().initSdk(this,
-                Integer.parseInt(ProperUtil.getProperty("tencentCloudSDKAppid")),
-                Integer.parseInt(ProperUtil.getProperty("tencentaccountType")));
+                BuildConfig.TENCENT_SDK_ID,
+                BuildConfig.TENCENT_ACCOUNT_TYPE);
         ILiveRoomManager.getInstance().init(new ILiveRoomConfig());
 
-        Logs.i("TencentSDK", " iLiveSDK: "+ ILiveSDK.getInstance().getVersion()+"\n IMSDK:"+
-                TIMManager.getInstance().getVersion()+"\n AVSDK:"+
+        Logs.i("TencentSDK", " iLiveSDK: " + ILiveSDK.getInstance().getVersion() + "\n IMSDK:" +
+                TIMManager.getInstance().getVersion() + "\n AVSDK:" +
                 AVContext.sdkVersion);
 
     }
-
 
 
 }

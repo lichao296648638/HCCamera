@@ -284,4 +284,46 @@ public class Http {
                 .subscribeOn(Schedulers.io())
                 .subscribe(subscriber);
     }
+
+    /**
+     * 5.发起服务通知
+     *
+     * @param subscriber 订阅
+     * @param param      设备编号
+     */
+    public void callOut(Subscriber<ResponseState> subscriber, Map<String, Object> param) {
+        Observable<ResponseState> observable = retrofit.create(NetworkService.class)
+                .callOut(param).onErrorResumeNext(new ErrorFunc<ResponseState>());
+        observable.observeOn(mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(subscriber);
+    }
+
+    /**
+     * 6.开始推流
+     *
+     * @param subscriber 订阅
+     * @param param      设备编号
+     */
+    public void startPush(Subscriber<ResponseState> subscriber, String param) {
+        Observable<ResponseState> observable = retrofit.create(NetworkService.class)
+                .startPush(param).onErrorResumeNext(new ErrorFunc<ResponseState>());
+        observable.observeOn(mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(subscriber);
+    }
+
+    /**
+     * 7.结束推流
+     *
+     * @param subscriber 订阅
+     * @param param      设备编号
+     */
+    public void endPush(Subscriber<ResponseState> subscriber, String param) {
+        Observable<ResponseState> observable = retrofit.create(NetworkService.class)
+                .endPush(param).onErrorResumeNext(new ErrorFunc<ResponseState>());
+        observable.observeOn(mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(subscriber);
+    }
 }

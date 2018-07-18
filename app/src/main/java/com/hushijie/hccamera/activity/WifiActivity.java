@@ -18,6 +18,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.hushijie.hccamera.Constants;
+import com.hushijie.hccamera.MyApplication;
 import com.hushijie.hccamera.R;
 import com.hushijie.hccamera.entity.WifiInfoEntity;
 import com.hushijie.hccamera.network.Http;
@@ -455,11 +456,11 @@ public class WifiActivity extends AppCompatActivity {
 
 
     //  判断手机的网络状态（是否联网）
-    public int getNetWorkInfo() {
+    public static int getNetWorkInfo() {
         //网络状态初始值
         int type = -1;  //-1(当前网络异常，没有联网)
         //通过上下文得到系统服务，参数为网络连接服务，返回网络连接的管理类
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager connectivityManager = (ConnectivityManager) MyApplication.getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         //通过网络管理类的实例得到联网日志的状态，返回联网日志的实例
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         //判断联网日志是否为空

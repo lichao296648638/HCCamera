@@ -119,7 +119,7 @@ public class PushReceiver extends BroadcastReceiver {
                                 @Override
                                 public void onNext(JoinRoomEntity entity) {
                                     Intent videoIntent = new Intent();
-                                    videoIntent.setComponent(new ComponentName("com.hushijie.hccamera", "com.hushijie.hccamera.activity.VideoActivity"));
+                                    videoIntent.setComponent(new ComponentName("com.hushijie.hccamera", "com.hushijie.hccamera.activity.ConversationActivity"));
                                     videoIntent.putExtra(EXT_KEY_OBJ, entity);
                                     videoIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                     context.startActivity(videoIntent);

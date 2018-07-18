@@ -1,9 +1,21 @@
 apply plugin: 'com.android.application'
 
+def getTencentSDKId() {
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    return properties.getProperty("tencentCloudSDKAppid")
+}
+
+def getTencentAccountType() {
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    return properties.getProperty("tencentaccountType")
+}
+
 android {
     //key.properties，加载参数
     Properties properties = new Properties()
-    InputStream inputStream = project.rootProject.file('key.properties').newDataInputStream()
+    InputStream inputStream = project.rootProject.file('local.properties').newDataInputStream()
     //转成utf-8的输入流才能读取汉字
     properties.load(new InputStreamReader(inputStream, "UTF-8"))
 
@@ -28,6 +40,10 @@ android {
                 JPUSH_CHANNEL: "developer-default", //暂时填写默认值即可.
         ]
         //------jpush end--------//
+
+        //写入脚本中配置好的各平台密钥
+        buildConfigField "int", "TENCENT_SDK_ID",  getTencentSDKId()
+        buildConfigField "int", "TENCENT_ACCOUNT_TYPE", getTencentAccountType()
     }
 
 

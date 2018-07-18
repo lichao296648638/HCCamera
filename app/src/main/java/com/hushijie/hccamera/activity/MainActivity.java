@@ -6,7 +6,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
+import com.hushijie.hccamera.Constants;
 import com.hushijie.hccamera.R;
+import com.hushijie.hccamera.network.Http;
+import com.hushijie.hccamera.network.ResponseState;
+import com.hushijie.hccamera.network.SimpleSubscriber;
+import com.hushijie.hccamera.utils.ToastUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +21,6 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity {
-
 
 
     /**
@@ -45,7 +49,16 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(this, WifiActivity.class));
                 break;
             case R.id.bt_start_video:
-                startActivity(new Intent(this, VideoActivity.class));
+                mMapParam.clear();
+                mMapParam.put("no", Constants.IMEI);
+                mMapParam.put("sourceType", 301);
+                Http.getInstance().callOut(new SimpleSubscriber<ResponseState>() {
+
+                    @Override
+                    public void onNext(ResponseState entity) {
+                        ToastUtils.s(entity.getTip());
+                    }
+                }, mMapParam);
                 break;
 
         }

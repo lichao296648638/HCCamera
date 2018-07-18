@@ -47,7 +47,6 @@ public interface NetworkService {
 
 
     /**
-     * 表单提交要加 @FormUrlEncoded
      * 获取腾讯云签名
      *
      * @param param 设备编号
@@ -58,7 +57,6 @@ public interface NetworkService {
 
 
     /**
-     * 表单提交要加 @FormUrlEncoded
      * 加入房间
      *
      * @param param 设备编号
@@ -66,4 +64,36 @@ public interface NetworkService {
     @FormUrlEncoded
     @POST("webrtc/hardware/enter")
     Observable<JoinRoomEntity> joinRoom(@Field("no") String param);
+
+
+    /**
+     * 发起服务通知
+     *
+     * @param params 参数列表
+     */
+    @FormUrlEncoded
+    @POST("wx/program/robot/nursing/request")
+    Observable<ResponseState> callOut(@FieldMap Map<String, Object> params);
+
+
+    /**
+     * 开始推流
+     *
+     * @param param 设备编号
+     */
+    @FormUrlEncoded
+    @POST("webrtc/hardware/record_service/start")
+    Observable<ResponseState> startPush(@Field("no") String param);
+
+    /**
+     * 结束推流
+     *
+     * @param param 设备编号
+     */
+    @FormUrlEncoded
+    @POST("webrtc/hardware/record_service/end")
+    Observable<ResponseState> endPush(@Field("no") String param);
+
+
+
 }

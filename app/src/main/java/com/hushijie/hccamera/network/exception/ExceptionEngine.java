@@ -21,6 +21,7 @@ import java.net.SocketTimeoutException;
 public class ExceptionEngine {
     //对应HTTP的状态码
     private static final int UNAUTHORIZED = 401;
+    private static final int FAIL = 0;
     private static final int FORBIDDEN = 403;
     private static final int NOT_FOUND = 404;
     private static final int REQUEST_TIMEOUT = 408;

@@ -74,7 +74,7 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".activity.VideoActivity"></activity>
+        <activity android:name=".activity.ConversationActivity"></activity>
     </application>
 
 </manifest>

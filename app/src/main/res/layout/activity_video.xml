@@ -1,13 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.hushijie.hccamera.activity.VideoActivity">
+    android:orientation="vertical"
+    tools:context="com.hushijie.hccamera.activity.ConversationActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/bt_startPush"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="startPush" />
+
+        <Button
+            android:id="@+id/bt_endPush"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="endpush" />
+    </LinearLayout>
 
     <com.tencent.ilivesdk.view.AVRootView
         android:id="@+id/av_root_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-</android.support.constraint.ConstraintLayout>
+</LinearLayout>
