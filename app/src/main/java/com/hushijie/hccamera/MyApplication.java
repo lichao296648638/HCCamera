@@ -8,8 +8,15 @@ import android.telephony.TelephonyManager;
 import com.hushijie.hccamera.activity.WifiActivity;
 import com.hushijie.hccamera.entity.DeviceInfo;
 import com.hushijie.hccamera.receiver.BluetoothInstructionReceiver;
+import com.hushijie.hccamera.utils.Logs;
+import com.hushijie.hccamera.utils.ProperUtil;
 import com.hushijie.hccamera.utils.SharedPreferencesUtil;
 import com.hushijie.hccamera.utils.ToastUtils;
+import com.tencent.TIMManager;
+import com.tencent.av.sdk.AVContext;
+import com.tencent.ilivesdk.ILiveSDK;
+import com.tencent.ilivesdk.core.ILiveRoomConfig;
+import com.tencent.ilivesdk.core.ILiveRoomManager;
 
 import cn.jpush.android.api.JPushInterface;
 
@@ -59,6 +66,15 @@ public class MyApplication extends Application {
         Constants.IMEI = imei;
         String alias = String.format("hc_equipmentNo_%s", imei);
         JPushInterface.setAlias(this, 0, alias);
+        //初始化腾讯云
+        ILiveSDK.getInstance().initSdk(this,
+                Integer.parseInt(ProperUtil.getProperty("tencentCloudSDKAppid")),
+                Integer.parseInt(ProperUtil.getProperty("tencentaccountType")));
+        ILiveRoomManager.getInstance().init(new ILiveRoomConfig());
+
+        Logs.i("TencentSDK", " iLiveSDK: "+ ILiveSDK.getInstance().getVersion()+"\n IMSDK:"+
+                TIMManager.getInstance().getVersion()+"\n AVSDK:"+
+                AVContext.sdkVersion);
 
     }
 

@@ -10,6 +10,12 @@
         android:layout_height="wrap_content"
         android:text="init wifi" />
 
+    <Button
+        android:id="@+id/bt_start_video"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="start video" />
+
 
 
 </LinearLayout>

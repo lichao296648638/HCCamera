@@ -4,6 +4,8 @@ import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.hushijie.hccamera.MyApplication;
+import com.hushijie.hccamera.entity.JoinRoomEntity;
+import com.hushijie.hccamera.entity.TencentSigEntity;
 import com.hushijie.hccamera.network.exception.CustomException;
 import com.hushijie.hccamera.network.exception.ExceptionEngine;
 import com.hushijie.hccamera.utils.Logs;
@@ -25,6 +27,7 @@ import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import me.jessyan.progressmanager.ProgressManager;
 import okhttp3.Interceptor;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -245,9 +248,38 @@ public class Http {
      * @param subscriber 订阅
      * @param param      参数列表
      */
-    public void postInstruction(Subscriber<ResponseState> subscriber, RequestBody param) {
+    public void postInstruction(Subscriber<ResponseState> subscriber, JSONObject param) {
+        RequestBody body = RequestBody.create(MediaType.parse("application/json"), param.toString());
         Observable<ResponseState> observable = retrofit.create(NetworkService.class)
-                .postInstruction(param).onErrorResumeNext(new ErrorFunc<ResponseState>());
+                .postInstruction(body).onErrorResumeNext(new ErrorFunc<ResponseState>());
+        observable.observeOn(mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(subscriber);
+    }
+
+    /**
+     * 3.获取腾讯云签名
+     *
+     * @param subscriber 订阅
+     * @param param      设备编号
+     */
+    public void getTencentSig(Subscriber<TencentSigEntity> subscriber, String param) {
+        Observable<TencentSigEntity> observable = retrofit.create(NetworkService.class)
+                .getTencentSig(param).onErrorResumeNext(new ErrorFunc<TencentSigEntity>());
+        observable.observeOn(mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(subscriber);
+    }
+
+    /**
+     * 4.加入腾讯云房间
+     *
+     * @param subscriber 订阅
+     * @param param      设备编号
+     */
+    public void joinRoom(Subscriber<JoinRoomEntity> subscriber, String param) {
+        Observable<JoinRoomEntity> observable = retrofit.create(NetworkService.class)
+                .joinRoom(param).onErrorResumeNext(new ErrorFunc<JoinRoomEntity>());
         observable.observeOn(mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe(subscriber);

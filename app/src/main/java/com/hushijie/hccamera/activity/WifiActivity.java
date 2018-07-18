@@ -144,20 +144,20 @@ public class WifiActivity extends AppCompatActivity {
         mNetworkConnectChangedReceiver = new NetworkConnectChangedReceiver();
         registerReceiver(mNetworkConnectChangedReceiver, filter);
         //判断是否有网络，无网先尝试链接本地储存的网络信息
-        if (getNetWorkInfo() == 1) {
-            finish();
-            return;
-        } else {
-            String ssid = SharedPreferencesUtil.getInstance(this).getSP(SP_KEY_WIFI_SSID);
-            String pass = SharedPreferencesUtil.getInstance(this).getSP(SP_KEY_WIFI_PASS);
-            if (!TextUtils.isEmpty(ssid)) {
-                connectWifi(ssid, pass);
-                return;
-            }
+//        if (getNetWorkInfo() == 1) {
+//            finish();
+//            return;
+//        } else {
+//            String ssid = SharedPreferencesUtil.getInstance(this).getSP(SP_KEY_WIFI_SSID);
+//            String pass = SharedPreferencesUtil.getInstance(this).getSP(SP_KEY_WIFI_PASS);
+//            if (!TextUtils.isEmpty(ssid)) {
+//                connectWifi(ssid, pass);
+//                return;
+//            }
             //打开扫码页面
             Intent intent = new Intent(this, ScanActivity.class);
             startActivityForResult(intent, REQUEST_CODE_SCAN);
-        }
+//        }
 
     }
 
@@ -301,11 +301,6 @@ public class WifiActivity extends AppCompatActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-
-        //将json转换成请求体——okhttp
-        RequestBody body = RequestBody.create(MediaType.parse("application/json"), mJsonParam.toString());
-
         Http.getInstance().postInstruction(new SimpleSubscriber<ResponseState>() {
 
             @Override
@@ -325,7 +320,7 @@ public class WifiActivity extends AppCompatActivity {
                 super.onComplete();
                 finish();
             }
-        }, body);
+        }, mJsonParam);
     }
 
     @OnClick({R.id.bt_bind, R.id.bt_post})

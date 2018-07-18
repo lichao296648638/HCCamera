@@ -142,68 +142,7 @@ public class BluetoothInstructionReceiver extends BroadcastReceiver {
                 break;
             //链接指令
             case CONNECT:
-                if (mClient == null)
-                    mClient = new BluetoothClient(context);
-                mClient.openBluetooth();
-                String address = mInstructionEntity.getBleAddress();
-                if (TextUtils.isEmpty(address)) {
-                    ToastUtils.s("mac地址为空，无法配对！");
-                    return;
-                }
-                mClient.connect(mInstructionEntity.getBleAddress(), new BleConnectResponse() {
-                    @Override
-                    public void onResponse(int code, BleGattProfile profile) {
-                        if (code == REQUEST_SUCCESS) {
-                            ToastUtils.s("配对成功！");
-                            //绑定设备
-                            bindDevice();
-                            //装载json返回给小程序
-                            JSONObject backJson = Http.entity2String("", 1, "配对成功");
-                            try {
-                                backJson.put("idenKey", mInstructionEntity.getIdenKey());
-                                backJson.put("idenAccountId", mInstructionEntity.getIdenAccountId());
-                                backJson.put("accountId", mInstructionEntity.getAccountId());
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                            //将json转换成请求体——okhttp
-                            RequestBody body = RequestBody.create(MediaType.parse("application/json"), backJson.toString());
-
-                            Http.getInstance().postInstruction(new SimpleSubscriber<ResponseState>() {
-
-                                @Override
-                                public void onNext(ResponseState entity) {
-                                    ToastUtils.s(entity.getTip());
-                                }
-
-                            }, body);
-                            //缓存起来
-                            SharedPreferencesUtil.getInstance(context).putSP(SP_KEY_BLE_NAME, mInstructionEntity.getBleName());
-                            SharedPreferencesUtil.getInstance(context).putSP(SP_KEY_BLE_MAC, mInstructionEntity.getBleAddress());
-                        } else {
-                            //装载json返回给小程序
-                            ToastUtils.s("配对失败！");
-                            JSONObject backJson = Http.entity2String("", 0, "配对失败");
-                            try {
-                                backJson.put("idenKey", mInstructionEntity.getIdenKey());
-                                backJson.put("idenAccountId", mInstructionEntity.getIdenAccountId());
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                            //将json转换成请求体——okhttp
-                            RequestBody body = RequestBody.create(MediaType.parse("application/json"), backJson.toString());
-
-                            Http.getInstance().postInstruction(new SimpleSubscriber<ResponseState>() {
-
-                                @Override
-                                public void onNext(ResponseState entity) {
-                                    ToastUtils.s(entity.getTip());
-                                }
-
-                            }, body);
-                        }
-                    }
-                });
+                connectDevice(context);
                 break;
         }
     }
@@ -281,50 +220,51 @@ public class BluetoothInstructionReceiver extends BroadcastReceiver {
                         bleInfoEntity.setBleName(mDevices.get(key));
                     }
                     mDatas.add(bleInfoEntity);
-                    //装载json返回给小程序
-                    if (mDatas.size() > 0) {
-                        JSONObject backJson = Http.entity2String(mDatas, 1, "查找成功");
-                        try {
-                            backJson.put("idenKey", mInstructionEntity.getIdenKey());
-                            backJson.put("idenAccountId", mInstructionEntity.getIdenAccountId());
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        //将json转换成请求体——okhttp
-                        RequestBody body = RequestBody.create(MediaType.parse("application/json"), backJson.toString());
-
-                        Http.getInstance().postInstruction(new SimpleSubscriber<ResponseState>() {
-
-                            @Override
-                            public void onNext(ResponseState entity) {
-                                ToastUtils.s(entity.getTip());
-                            }
-
-                        }, body);
-                    } else {
-                        JSONObject backJson = new JSONObject();
-                        try {
-                            backJson.put("idenKey", mInstructionEntity.getIdenKey());
-                            backJson.put("idenAccountId", mInstructionEntity.getIdenAccountId());
-                            backJson.put("code", 0);
-                            backJson.put("tip", "周围无蓝牙设备");
-                            backJson.put("data", "");
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        //将json转换成请求体——okhttp
-                        RequestBody body = RequestBody.create(MediaType.parse("application/json"), backJson.toString());
-
-                        Http.getInstance().postInstruction(new SimpleSubscriber<ResponseState>() {
-
-                            @Override
-                            public void onNext(ResponseState entity) {
-                                ToastUtils.s(entity.getTip());
-                            }
-
-                        }, body);
-                    }
                 }
+
+                //装载json返回给小程序
+                if (mDatas.size() > 0) {
+                    JSONObject backJson = Http.entity2String(mDatas, 1, "查找成功");
+                    try {
+                        backJson.put("idenKey", mInstructionEntity.getIdenKey());
+                        backJson.put("idenAccountId", mInstructionEntity.getIdenAccountId());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    Http.getInstance().postInstruction(new SimpleSubscriber<ResponseState>() {
+
+                        @Override
+                        public void onNext(ResponseState entity) {
+                            ToastUtils.s(entity.getTip());
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+                            super.onError(e);
+                        }
+                    }, backJson);
+                } else {
+                    JSONObject backJson = new JSONObject();
+                    try {
+                        backJson.put("idenKey", mInstructionEntity.getIdenKey());
+                        backJson.put("idenAccountId", mInstructionEntity.getIdenAccountId());
+                        backJson.put("code", 0);
+                        backJson.put("tip", "周围无蓝牙设备");
+                        backJson.put("data", "");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    Http.getInstance().postInstruction(new SimpleSubscriber<ResponseState>() {
+
+                        @Override
+                        public void onNext(ResponseState entity) {
+                            ToastUtils.s(entity.getTip());
+                        }
+
+                    }, backJson);
+                }
+
             }
         };
         //注册蓝牙开关监听
@@ -365,6 +305,93 @@ public class BluetoothInstructionReceiver extends BroadcastReceiver {
 
     }
 
+
+    /**
+     * 配对设备
+     */
+    private void connectDevice(final Context context) {
+        if (mClient == null)
+            mClient = new BluetoothClient(context);
+        mClient.openBluetooth();
+        String address = mInstructionEntity.getBleAddress();
+        if (TextUtils.isEmpty(address)) {
+            ToastUtils.s("mac地址为空，无法配对！");
+            return;
+        }
+
+        //判断是否需要重新绑定
+        if (mInstructionEntity.isReplace()) {
+            //先跟上个设备解绑
+            if (TextUtils.isEmpty(mInstructionEntity.getLastBleAddress())) {
+                ToastUtils.s("mac地址为空，无法配对！");
+                return;
+            }
+            mClient.disconnect(mInstructionEntity.getLastBleAddress());
+            //轮询10秒断开结果
+            long startTime = System.currentTimeMillis();
+            long currentTime = System.currentTimeMillis();
+            int bleStatus = -1;
+            while ((currentTime - startTime) / 1000 < 10) {
+                bleStatus = mClient.getConnectStatus(mInstructionEntity.getLastBleAddress());
+                Logs.i("lichao", "上一蓝牙设备连接状态：" + bleStatus);
+                if (bleStatus == com.inuker.bluetooth.library.Constants.STATUS_DEVICE_DISCONNECTED) {
+                    break;
+                }
+                currentTime = System.currentTimeMillis();
+            }
+        }
+
+        mClient.connect(mInstructionEntity.getBleAddress(), new BleConnectResponse() {
+            @Override
+            public void onResponse(int code, BleGattProfile profile) {
+                if (code == REQUEST_SUCCESS) {
+                    ToastUtils.s("配对成功！");
+                    //绑定设备
+                    bindDevice();
+                    //装载json返回给小程序
+                    JSONObject backJson = Http.entity2String("", 1, "配对成功");
+                    try {
+                        backJson.put("idenKey", mInstructionEntity.getIdenKey());
+                        backJson.put("idenAccountId", mInstructionEntity.getIdenAccountId());
+                        backJson.put("accountId", mInstructionEntity.getAccountId());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    Http.getInstance().postInstruction(new SimpleSubscriber<ResponseState>() {
+
+                        @Override
+                        public void onNext(ResponseState entity) {
+                            ToastUtils.s(entity.getTip());
+                        }
+
+                    }, backJson);
+                    //缓存起来
+                    SharedPreferencesUtil.getInstance(context).putSP(SP_KEY_BLE_NAME, mInstructionEntity.getBleName());
+                    SharedPreferencesUtil.getInstance(context).putSP(SP_KEY_BLE_MAC, mInstructionEntity.getBleAddress());
+                } else {
+                    //装载json返回给小程序
+                    ToastUtils.s("配对失败！");
+                    JSONObject backJson = Http.entity2String("", 0, "配对失败");
+                    try {
+                        backJson.put("idenKey", mInstructionEntity.getIdenKey());
+                        backJson.put("idenAccountId", mInstructionEntity.getIdenAccountId());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    Http.getInstance().postInstruction(new SimpleSubscriber<ResponseState>() {
+
+                        @Override
+                        public void onNext(ResponseState entity) {
+                            ToastUtils.s(entity.getTip());
+                        }
+
+                    }, backJson);
+                }
+            }
+        });
+
+    }
+
     /**
      * 绑定设备
      */
@@ -376,6 +403,9 @@ public class BluetoothInstructionReceiver extends BroadcastReceiver {
         mMapParam.put("accountId", mInstructionEntity.getAccountId());
         mMapParam.put("idenAccountId", mInstructionEntity.getIdenAccountId());
         mMapParam.put("organId", mInstructionEntity.getOrganId());
+        mMapParam.put("isReplace", mInstructionEntity.isReplace());
+
+
         Http.getInstance().bindDevice(new SimpleSubscriber<ResponseState>() {
 
             @Override
@@ -410,17 +440,12 @@ public class BluetoothInstructionReceiver extends BroadcastReceiver {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-
-        //将json转换成请求体——okhttp
-        RequestBody body = RequestBody.create(MediaType.parse("application/json"), mJsonParam.toString());
-
         Http.getInstance().postInstruction(new SimpleSubscriber<ResponseState>() {
 
             @Override
             public void onNext(ResponseState entity) {
                 ToastUtils.s(entity.getTip());
             }
-        }, body);
+        }, mJsonParam);
     }
 }

@@ -22,7 +22,7 @@ public class WifiInfoEntity {
     private int idenAccountId;
     private int organId;
     private String idenKey;
-//    private long time;
+    private long time;
 
 
     public String getSsid() {
@@ -73,11 +73,11 @@ public class WifiInfoEntity {
         this.idenKey = idenKey;
     }
 
-//    public long getTime() {
-//        return time;
-//    }
-//
-//    public void setTime(long time) {
-//        this.time = time;
-//    }
+    public long getTime() {
+        return time;
+    }
+
+    public void setTime(long time) {
+        this.time = time;
+    }
 }

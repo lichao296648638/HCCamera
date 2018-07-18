@@ -18,6 +18,8 @@ public class InstructionEntity implements Serializable {
      * bleAddress : "ab:cd:ef"
      * bleName : "手环"
      * organId : 1
+     * isRaplace : true
+     * lastBleAddress : ab:cd:ef
      */
     private String idenKey;
     private long equipmentNo;
@@ -27,6 +29,9 @@ public class InstructionEntity implements Serializable {
     private String instruction;
     private String bleAddress;
     private String bleName;
+    private boolean isReplace;
+
+    private String lastBleAddress;
 
     public String getBleAddress() {
         return bleAddress;
@@ -91,6 +96,23 @@ public class InstructionEntity implements Serializable {
 
     public void setOrganId(int organId) {
         this.organId = organId;
+    }
+
+
+    public boolean isReplace() {
+        return isReplace;
+    }
+
+    public void setReplace(boolean replace) {
+        isReplace = replace;
+    }
+
+    public String getLastBleAddress() {
+        return lastBleAddress;
+    }
+
+    public void setLastBleAddress(String lastBleAddress) {
+        this.lastBleAddress = lastBleAddress;
     }
 
 }

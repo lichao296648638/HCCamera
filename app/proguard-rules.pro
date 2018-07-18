@@ -35,3 +35,15 @@
 -keep class com.google.gson.** {*;}
 -keep class com.google.protobuf.** {*;}
 #######极光混淆规则#######
+
+#######腾讯云音视频混淆规则#######
+-keep class com.tencent.**{*;}
+-dontwarn com.tencent.**
+
+-keep class tencent.**{*;}
+-dontwarn tencent.**
+
+-keep class qalsdk.**{*;}
+-dontwarn qalsdk.**
+#######腾讯云音视频混淆规则#######
+
