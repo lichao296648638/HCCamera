@@ -87,6 +87,7 @@ public class MyApplication extends Application {
         Logs.i("TencentSDK", " iLiveSDK: " + ILiveSDK.getInstance().getVersion() + "\n IMSDK:" +
                 TIMManager.getInstance().getVersion() + "\n AVSDK:" +
                 AVContext.sdkVersion);
+        //系统音量调成最大
 
     }
 

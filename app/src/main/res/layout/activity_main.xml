@@ -16,6 +16,11 @@
         android:layout_height="wrap_content"
         android:text="start video" />
 
+    <Button
+        android:id="@+id/bt_create_room"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="create room" />
 
 
 </LinearLayout>

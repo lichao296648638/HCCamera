@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import com.google.gson.Gson;
 import com.hushijie.hccamera.MyApplication;
 import com.hushijie.hccamera.entity.JoinRoomEntity;
+import com.hushijie.hccamera.entity.StartPushEntity;
 import com.hushijie.hccamera.entity.TencentSigEntity;
 import com.hushijie.hccamera.network.exception.CustomException;
 import com.hushijie.hccamera.network.exception.ExceptionEngine;
@@ -283,7 +284,7 @@ public class Http {
         observable.observeOn(mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe(subscriber);
-    }
+}
 
     /**
      * 5.发起服务通知
@@ -303,11 +304,11 @@ public class Http {
      * 6.开始推流
      *
      * @param subscriber 订阅
-     * @param param      设备编号
+     * @param param      用户Id
      */
-    public void startPush(Subscriber<ResponseState> subscriber, String param) {
-        Observable<ResponseState> observable = retrofit.create(NetworkService.class)
-                .startPush(param).onErrorResumeNext(new ErrorFunc<ResponseState>());
+    public void startPush(Subscriber<StartPushEntity> subscriber, String param) {
+        Observable<StartPushEntity> observable = retrofit.create(NetworkService.class)
+                .startPush(param).onErrorResumeNext(new ErrorFunc<StartPushEntity>());
         observable.observeOn(mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe(subscriber);

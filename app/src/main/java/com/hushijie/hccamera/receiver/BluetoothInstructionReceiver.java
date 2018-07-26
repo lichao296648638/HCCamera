@@ -1,5 +1,6 @@
 package com.hushijie.hccamera.receiver;
 
+import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +14,7 @@ import com.hushijie.hccamera.entity.InstructionEntity;
 import com.hushijie.hccamera.network.Http;
 import com.hushijie.hccamera.network.ResponseState;
 import com.hushijie.hccamera.network.SimpleSubscriber;
+import com.hushijie.hccamera.utils.BleProfile;
 import com.hushijie.hccamera.utils.BleUtil;
 import com.hushijie.hccamera.utils.Logs;
 import com.hushijie.hccamera.utils.SharedPreferencesUtil;
@@ -21,11 +23,14 @@ import com.inuker.bluetooth.library.BluetoothClient;
 import com.inuker.bluetooth.library.beacon.Beacon;
 import com.inuker.bluetooth.library.connect.listener.BluetoothStateListener;
 import com.inuker.bluetooth.library.connect.response.BleConnectResponse;
+import com.inuker.bluetooth.library.connect.response.BleNotifyResponse;
+import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
 import com.inuker.bluetooth.library.model.BleGattProfile;
 import com.inuker.bluetooth.library.search.SearchRequest;
 import com.inuker.bluetooth.library.search.SearchResult;
 import com.inuker.bluetooth.library.search.response.SearchResponse;
 import com.inuker.bluetooth.library.utils.BluetoothLog;
+import com.inuker.bluetooth.library.utils.UUIDUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,9 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
+import java.util.UUID;
 
 import static com.inuker.bluetooth.library.Code.REQUEST_SUCCESS;
 
@@ -146,6 +149,7 @@ public class BluetoothInstructionReceiver extends BroadcastReceiver {
                 break;
         }
     }
+
 
     /**
      * 初始化
@@ -273,6 +277,27 @@ public class BluetoothInstructionReceiver extends BroadcastReceiver {
 
 
     /**
+     * 打开Notify
+     */
+    private void openNotify(final String mac, final UUID serviceUUID, final UUID characterUUID) {
+        mClient.notify(mac, serviceUUID, characterUUID, new BleNotifyResponse() {
+            @Override
+            public void onNotify(UUID service, UUID character, byte[] value) {
+                ToastUtils.s("手环传来信息");
+
+            }
+
+            @Override
+            public void onResponse(int code) {
+                if (code == REQUEST_SUCCESS) {
+                    ToastUtils.s("开启Notify成功");
+
+                }
+            }
+        });
+    }
+
+    /**
      * 扫描蓝牙设备
      */
     private void scanBluetooth() {
@@ -365,6 +390,19 @@ public class BluetoothInstructionReceiver extends BroadcastReceiver {
                         }
 
                     }, backJson);
+                    //开启Notify准备接收手环信息
+                    openNotify(mInstructionEntity.getBleAddress(),
+                            UUIDUtils.makeUUID(BleProfile.UUID_SERVER),
+                            UUIDUtils.makeUUID(BleProfile.UUID_TX));
+//                    mClient.write(mInstructionEntity.getBleAddress(), UUIDUtils.makeUUID(BleProfile.UUID_SERVER),
+//                            UUIDUtils.makeUUID(BleProfile.UUID_TX), BleProfile.searchBle(), new BleWriteResponse() {
+//                                @Override
+//                                public void onResponse(int code) {
+//                                    if (code == REQUEST_SUCCESS) {
+//
+//                                    }
+//                                }
+//                            });
                     //缓存起来
                     SharedPreferencesUtil.getInstance(context).putSP(SP_KEY_BLE_NAME, mInstructionEntity.getBleName());
                     SharedPreferencesUtil.getInstance(context).putSP(SP_KEY_BLE_MAC, mInstructionEntity.getBleAddress());

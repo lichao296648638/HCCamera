@@ -44,6 +44,7 @@ android {
         //写入脚本中配置好的各平台密钥
         buildConfigField "int", "TENCENT_SDK_ID",  getTencentSDKId()
         buildConfigField "int", "TENCENT_ACCOUNT_TYPE", getTencentAccountType()
+
     }
 
 

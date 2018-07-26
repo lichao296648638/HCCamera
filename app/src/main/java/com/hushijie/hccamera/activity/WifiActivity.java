@@ -24,7 +24,9 @@ import com.hushijie.hccamera.entity.WifiInfoEntity;
 import com.hushijie.hccamera.network.Http;
 import com.hushijie.hccamera.network.ResponseState;
 import com.hushijie.hccamera.network.SimpleSubscriber;
+import com.hushijie.hccamera.receiver.BootReceiver;
 import com.hushijie.hccamera.utils.Logs;
+import com.hushijie.hccamera.utils.MediaUtil;
 import com.hushijie.hccamera.utils.SharedPreferencesUtil;
 import com.hushijie.hccamera.utils.ToastUtils;
 
@@ -64,10 +66,7 @@ public class WifiActivity extends AppCompatActivity {
     public final int REQUEST_CODE_SCAN = 0;
     @BindView(R.id.tv_count)
     TextView tvCount;
-    @BindView(R.id.bt_bind)
-    Button btBind;
-    @BindView(R.id.bt_post)
-    Button btPost;
+
 
     /**
      * 当前网络的ssid
@@ -120,6 +119,11 @@ public class WifiActivity extends AppCompatActivity {
      */
     NetworkConnectChangedReceiver mNetworkConnectChangedReceiver;
 
+    /**
+     * 是否是自启动连接方式
+     */
+    private boolean isBoot = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,6 +137,7 @@ public class WifiActivity extends AppCompatActivity {
      * 初始化
      */
     private void init() {
+
         //初始化wifi计时器
         mTimeCount = new TimeCount(10000, 1000);
         //加载wifi管理
@@ -144,21 +149,28 @@ public class WifiActivity extends AppCompatActivity {
         filter.addAction("android.net.wifi.STATE_CHANGE");
         mNetworkConnectChangedReceiver = new NetworkConnectChangedReceiver();
         registerReceiver(mNetworkConnectChangedReceiver, filter);
-        //判断是否有网络，无网先尝试链接本地储存的网络信息
-//        if (getNetWorkInfo() == 1) {
-//            finish();
-//            return;
-//        } else {
-//            String ssid = SharedPreferencesUtil.getInstance(this).getSP(SP_KEY_WIFI_SSID);
-//            String pass = SharedPreferencesUtil.getInstance(this).getSP(SP_KEY_WIFI_PASS);
-//            if (!TextUtils.isEmpty(ssid)) {
-//                connectWifi(ssid, pass);
-//                return;
-//            }
+
+        //判断是不是开机自启动后自动联网
+        Intent comingIntent = getIntent();
+        if (comingIntent.getStringExtra(BootReceiver.EXT_KEY_BOOT) != null){
+            isBoot = true;
+            if (comingIntent.getStringExtra(BootReceiver.EXT_KEY_BOOT).equals(BootReceiver.EXT_VALUE_BOOT)) {
+                mSSID = SharedPreferencesUtil.getInstance(MyApplication.getContext()).getSP(SP_KEY_WIFI_SSID);
+                mPass = SharedPreferencesUtil.getInstance(MyApplication.getContext()).getSP(SP_KEY_WIFI_PASS);
+            }
+//            //打开wifi
+//            mWifiManager.setWifiEnabled(false);
+//            mWifiManager.setWifiEnabled(true);
+        }
+
+        //判断本地有没有网络账号和密码没有则扫码
+        if (TextUtils.isEmpty(mSSID)) {
+            //播放提示音
+            MediaUtil.play(R.raw.wait_connect);
             //打开扫码页面
             Intent intent = new Intent(this, ScanActivity.class);
             startActivityForResult(intent, REQUEST_CODE_SCAN);
-//        }
+        }
 
     }
 
@@ -169,12 +181,13 @@ public class WifiActivity extends AppCompatActivity {
      * @param targetPsd  wifi密码
      */
     public void connectWifi(String targetSsid, String targetPsd) {
-
+        if(TextUtils.isEmpty(targetSsid))
+            return;
         // 1、注意热点和密码均包含引号，此处需要需要转义引号
         String ssid = "\"" + targetSsid + "\"";
         String psd = "\"" + targetPsd + "\"";
-        mSSID = ssid;
-        mPass = psd;
+        mSSID = targetSsid;
+        mPass = targetPsd;
         //2、配置wifi信息
         WifiConfiguration conf = new WifiConfiguration();
         conf.SSID = ssid;
@@ -260,6 +273,8 @@ public class WifiActivity extends AppCompatActivity {
      * 绑定设备
      */
     private void bindDevice() {
+        if (mWifiInfoEntity == null)
+            return;
         mMapParam.clear();
         mMapParam.put("electricity", getBatteryPercent() + "");
         mMapParam.put("equipmentNo", Constants.IMEI);
@@ -273,9 +288,9 @@ public class WifiActivity extends AppCompatActivity {
             public void onNext(ResponseState entity) {
                 ToastUtils.s(entity.getTip());
                 //绑定成功后，通过server通道通知小程序
-                if (entity.getCode() == 1) {
-                    postInstruction();
-                }
+                postInstruction(entity);
+                if (entity.getCode() == 1)
+                    MediaUtil.play(R.raw.bind_success);
             }
 
             @Override
@@ -291,13 +306,13 @@ public class WifiActivity extends AppCompatActivity {
     /**
      * 发送绑定成功指令
      */
-    private void postInstruction() {
+    private void postInstruction(ResponseState entity) {
         mJsonParam = new JSONObject();
         try {
             mJsonParam.put("idenKey", mWifiInfoEntity.getIdenKey());
             mJsonParam.put("idenAccountId", mWifiInfoEntity.getIdenAccountId());
-            mJsonParam.put("code", 1);
-            mJsonParam.put("tip", "绑定成功");
+            mJsonParam.put("code", entity.getCode());
+            mJsonParam.put("tip", entity.getTip());
             mJsonParam.put("data", "");
         } catch (JSONException e) {
             e.printStackTrace();
@@ -307,6 +322,10 @@ public class WifiActivity extends AppCompatActivity {
             @Override
             public void onNext(ResponseState entity) {
                 ToastUtils.s(entity.getTip());
+                if (entity.getCode() == 0) {
+                    //绑定成功
+                    MediaUtil.play(R.raw.bind_success);
+                }
                 finish();
             }
 
@@ -322,18 +341,6 @@ public class WifiActivity extends AppCompatActivity {
                 finish();
             }
         }, mJsonParam);
-    }
-
-    @OnClick({R.id.bt_bind, R.id.bt_post})
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.bt_bind:
-                bindDevice();
-                break;
-            case R.id.bt_post:
-                postInstruction();
-                break;
-        }
     }
 
 
@@ -361,8 +368,14 @@ public class WifiActivity extends AppCompatActivity {
                         break;
                     //wifi已打开
                     case WifiManager.WIFI_STATE_ENABLED:
+                        //扫码后连接
                         if (mWifiInfoEntity != null) {
                             connectWifi(mWifiInfoEntity.getSsid(), mWifiInfoEntity.getPass());
+                            mTimeCount.start();
+                        }
+                        //自启动后连接
+                        if (isBoot) {
+                            connectWifi(mSSID, mPass);
                             mTimeCount.start();
                         }
                         break;
@@ -387,7 +400,9 @@ public class WifiActivity extends AppCompatActivity {
                     if (activeNetwork.isConnected()) {
                         if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI) {
                             // connected to wifi
-                            if (mWifiInfoEntity != null){
+                            if (mWifiInfoEntity != null) {
+                                //扫码成功
+                                MediaUtil.play(R.raw.scan_success);
                                 //绑定设备
                                 bindDevice();
                                 //联网成功存储网络信息
@@ -436,14 +451,20 @@ public class WifiActivity extends AppCompatActivity {
         public void onFinish() {// 计时完毕时触发
             //检测当前网络状态是否已经是wifi，如果不是的话，分别用三种加密方式尝试链接，间隔是10秒尝试一次
             if (getNetWorkInfo() != 1 && wifi_enc < 3) {
+                //更换加密方式
                 wifi_enc++;
+                //扫码链接方式
                 if (mWifiInfoEntity != null)
                     connectWifi(mWifiInfoEntity.getSsid(), mWifiInfoEntity.getPass());
+                //自启动连接方式
+                if (isBoot)
+                    connectWifi(mSSID, mPass);
                 if (wifi_enc < 2)
                     mTimeCount.start();
             } else {
                 //连网成功，重置默认加密方式
                 wifi_enc = WPA;
+                isBoot = false;
             }
         }
 

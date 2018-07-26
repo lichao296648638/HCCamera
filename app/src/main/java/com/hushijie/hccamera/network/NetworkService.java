@@ -2,6 +2,7 @@ package com.hushijie.hccamera.network;
 
 
 import com.hushijie.hccamera.entity.JoinRoomEntity;
+import com.hushijie.hccamera.entity.StartPushEntity;
 import com.hushijie.hccamera.entity.TencentSigEntity;
 
 import java.util.Map;
@@ -79,16 +80,16 @@ public interface NetworkService {
     /**
      * 开始推流
      *
-     * @param param 设备编号
+     * @param param 用户id
      */
     @FormUrlEncoded
     @POST("webrtc/hardware/record_service/start")
-    Observable<ResponseState> startPush(@Field("no") String param);
+    Observable<StartPushEntity> startPush(@Field("userId") String param);
 
     /**
      * 结束推流
      *
-     * @param param 设备编号
+     * @param param 设备号
      */
     @FormUrlEncoded
     @POST("webrtc/hardware/record_service/end")

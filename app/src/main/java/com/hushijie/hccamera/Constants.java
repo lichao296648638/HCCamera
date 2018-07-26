@@ -1,7 +1,7 @@
 package com.hushijie.hccamera;
 
 /**
- *  常量
+ * 常量
  * Created by zhangkun on 2017/5/25.
  */
 
@@ -11,7 +11,7 @@ public class Constants {
     public static String SERVER_URL = BuildConfig.SERVER;
 
     //IMEI
-    public static String  IMEI  ="";
+    public static String IMEI = "";
 
     //电量
     public static String BATTERY = "100%";
@@ -24,5 +24,6 @@ public class Constants {
 
     //此用户已绑定本设备,无需在绑定
     public static final int CODE_USER_BINDED = 20020;
+
 
 }

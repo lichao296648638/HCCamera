@@ -20,6 +20,7 @@ public class InstructionEntity implements Serializable {
      * organId : 1
      * isRaplace : true
      * lastBleAddress : ab:cd:ef
+     * sendTime : "150121252112121"
      */
     private String idenKey;
     private long equipmentNo;
@@ -30,8 +31,17 @@ public class InstructionEntity implements Serializable {
     private String bleAddress;
     private String bleName;
     private boolean isReplace;
-
     private String lastBleAddress;
+
+    public String getSendTime() {
+        return sendTime;
+    }
+
+    public void setSendTime(String sendTime) {
+        this.sendTime = sendTime;
+    }
+
+    private String sendTime;
 
     public String getBleAddress() {
         return bleAddress;

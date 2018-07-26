@@ -11,12 +11,25 @@ import com.tencent.ilivesdk.core.ILiveLoginManager;
 
 public class LoginHelper {
     private ILoginView loginView;
+    private static LoginHelper mLoginHelper;
 
-    public LoginHelper(ILoginView view){
-        loginView = view;
+    private LoginHelper() {
+
     }
 
-    public void loginSDK(String userId, String userSig){
+    public static LoginHelper getInstance() {
+        if (mLoginHelper == null) {
+            mLoginHelper = new LoginHelper();
+        }
+        return mLoginHelper;
+    }
+
+    public void init(ILoginView view) {
+        loginView = view;
+
+    }
+
+    public void loginSDK(String userId, String userSig) {
         ILiveLoginManager.getInstance().iLiveLogin(userId, userSig, new ILiveCallBack() {
             @Override
             public void onSuccess(Object data) {
@@ -28,5 +41,11 @@ public class LoginHelper {
                 loginView.onLoginSDKFailed(module, errCode, errMsg);
             }
         });
+    }
+
+
+
+    public boolean isLoginIn() {
+        return ILiveLoginManager.getInstance().isLogin();
     }
 }

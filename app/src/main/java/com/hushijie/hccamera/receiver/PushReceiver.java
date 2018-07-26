@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import com.hushijie.hccamera.Constants;
+import com.hushijie.hccamera.activity.ConversationActivity;
 import com.hushijie.hccamera.entity.InstructionEntity;
 import com.hushijie.hccamera.entity.JoinRoomEntity;
 import com.hushijie.hccamera.network.Http;
@@ -40,6 +41,11 @@ public class PushReceiver extends BroadcastReceiver {
      * intent数据key——指令
      */
     public static final String EXT_KEY_INS = "instruction";
+
+    /**
+     * intent数据key——请求业务码
+     */
+    public static final String EXT_KEY_REQUEST = "request";
 
     /**
      * 查询设备是否在线指令
@@ -97,7 +103,11 @@ public class PushReceiver extends BroadcastReceiver {
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-
+                            long currTime = System.currentTimeMillis();
+                            long sendTime = Long.parseLong(instructionEntity.getSendTime());
+                            //超时不处理
+                            if ((currTime - sendTime) / 1000 > 10)
+                                return;
                             Http.getInstance().postInstruction(new SimpleSubscriber<ResponseState>() {
 
                                 @Override
@@ -121,6 +131,7 @@ public class PushReceiver extends BroadcastReceiver {
                                     Intent videoIntent = new Intent();
                                     videoIntent.setComponent(new ComponentName("com.hushijie.hccamera", "com.hushijie.hccamera.activity.ConversationActivity"));
                                     videoIntent.putExtra(EXT_KEY_OBJ, entity);
+                                    videoIntent.putExtra(EXT_KEY_REQUEST, ConversationActivity.REQUEST_CODE_CALL);
                                     videoIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                     context.startActivity(videoIntent);
                                 }

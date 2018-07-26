@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.hushijie.hccamera.Constants;
+import com.hushijie.hccamera.R;
+import com.hushijie.hccamera.utils.MediaUtil;
 
 /**
  * 系统电量监听
@@ -19,5 +21,8 @@ public class BatteryReceiver extends BroadcastReceiver {
         int total = intent.getExtras().getInt("scale");// 获得总电量
         int percent = current * 100 / total;
         Constants.BATTERY = percent + "%";
+        if (percent <= 15) {
+            MediaUtil.play(R.raw.low_power);
+        }
     }
 }

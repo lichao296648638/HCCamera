@@ -12,17 +12,13 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/bt_startPush"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="startPush" />
 
         <Button
-            android:id="@+id/bt_endPush"
+            android:id="@+id/bt_quit_room"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="endpush" />
+            android:text="quit room" />
+
     </LinearLayout>
 
     <com.tencent.ilivesdk.view.AVRootView
