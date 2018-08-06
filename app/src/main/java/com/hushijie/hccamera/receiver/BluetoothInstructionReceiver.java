@@ -147,6 +147,28 @@ public class BluetoothInstructionReceiver extends BroadcastReceiver {
             case CONNECT:
                 connectDevice(context);
                 break;
+
+//            //寻找指令
+//            case FIND:
+//                mClient.connect("A4:C1:38:90:6A:BB", new BleConnectResponse() {
+//                    @Override
+//                    public void onResponse(int code, BleGattProfile profile) {
+//                        if (code == REQUEST_SUCCESS) {
+//                            ToastUtils.s("配对成功！");
+//                            //开启Notify准备接收手环信息
+//                            openNotify("A4:C1:38:90:6A:BB",
+//                                    UUID.fromString(BleProfile.UUID_SERVER),
+//                                    UUID.fromString(BleProfile.UUID_RX));
+//
+//                        } else {
+//                            //装载json返回给小程序
+//                            ToastUtils.s("配对失败！");
+//
+//                        }
+//                    }
+//                });
+//                break;
+
         }
     }
 
@@ -284,14 +306,26 @@ public class BluetoothInstructionReceiver extends BroadcastReceiver {
             @Override
             public void onNotify(UUID service, UUID character, byte[] value) {
                 ToastUtils.s("手环传来信息");
-
+                Logs.i(TAG, "蓝牙数据\n" + value.toString());
             }
 
             @Override
             public void onResponse(int code) {
                 if (code == REQUEST_SUCCESS) {
                     ToastUtils.s("开启Notify成功");
+                    mClient.write(mac,
+                            UUID.fromString(BleProfile.UUID_SERVER),
+                            UUID.fromString(BleProfile.UUID_TX),
+                            new byte[]{0x55, 0x00, 0x2a, 0x04, 0x01, 0x0, 0x0},
+//                            BleProfile.searchBle(),
+                            new BleWriteResponse() {
+                                @Override
+                                public void onResponse(int code) {
+                                    if (code == REQUEST_SUCCESS) {
 
+                                    }
+                                }
+                            });
                 }
             }
         });
@@ -392,8 +426,8 @@ public class BluetoothInstructionReceiver extends BroadcastReceiver {
                     }, backJson);
                     //开启Notify准备接收手环信息
                     openNotify(mInstructionEntity.getBleAddress(),
-                            UUIDUtils.makeUUID(BleProfile.UUID_SERVER),
-                            UUIDUtils.makeUUID(BleProfile.UUID_TX));
+                            UUID.fromString(BleProfile.UUID_SERVER),
+                            UUID.fromString(BleProfile.UUID_TX));
 //                    mClient.write(mInstructionEntity.getBleAddress(), UUIDUtils.makeUUID(BleProfile.UUID_SERVER),
 //                            UUIDUtils.makeUUID(BleProfile.UUID_TX), BleProfile.searchBle(), new BleWriteResponse() {
 //                                @Override

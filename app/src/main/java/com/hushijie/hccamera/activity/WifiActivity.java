@@ -152,7 +152,7 @@ public class WifiActivity extends AppCompatActivity {
 
         //判断是不是开机自启动后自动联网
         Intent comingIntent = getIntent();
-        if (comingIntent.getStringExtra(BootReceiver.EXT_KEY_BOOT) != null){
+        if (comingIntent.getStringExtra(BootReceiver.EXT_KEY_BOOT) != null) {
             isBoot = true;
             if (comingIntent.getStringExtra(BootReceiver.EXT_KEY_BOOT).equals(BootReceiver.EXT_VALUE_BOOT)) {
                 mSSID = SharedPreferencesUtil.getInstance(MyApplication.getContext()).getSP(SP_KEY_WIFI_SSID);
@@ -181,7 +181,7 @@ public class WifiActivity extends AppCompatActivity {
      * @param targetPsd  wifi密码
      */
     public void connectWifi(String targetSsid, String targetPsd) {
-        if(TextUtils.isEmpty(targetSsid))
+        if (TextUtils.isEmpty(targetSsid))
             return;
         // 1、注意热点和密码均包含引号，此处需要需要转义引号
         String ssid = "\"" + targetSsid + "\"";
@@ -296,7 +296,6 @@ public class WifiActivity extends AppCompatActivity {
             @Override
             public void onError(Throwable e) {
                 ToastUtils.s(e.getMessage());
-                finish();
             }
 
         }, mMapParam);
@@ -326,20 +325,8 @@ public class WifiActivity extends AppCompatActivity {
                     //绑定成功
                     MediaUtil.play(R.raw.bind_success);
                 }
-                finish();
             }
 
-            @Override
-            public void onError(Throwable e) {
-                super.onError(e);
-                finish();
-            }
-
-            @Override
-            public void onComplete() {
-                super.onComplete();
-                finish();
-            }
         }, mJsonParam);
     }
 
@@ -408,6 +395,7 @@ public class WifiActivity extends AppCompatActivity {
                                 //联网成功存储网络信息
                                 SharedPreferencesUtil.getInstance(WifiActivity.this).putSP(SP_KEY_WIFI_SSID, mSSID);
                                 SharedPreferencesUtil.getInstance(WifiActivity.this).putSP(SP_KEY_WIFI_PASS, mPass);
+                                finish();
                             }
                             Logs.e(TAG, "当前WiFi连接可用 ");
                         } else if (activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
@@ -461,10 +449,15 @@ public class WifiActivity extends AppCompatActivity {
                     connectWifi(mSSID, mPass);
                 if (wifi_enc < 2)
                     mTimeCount.start();
+                //连网失败
+                if (wifi_enc == 2) {
+                    finish();
+                }
             } else {
                 //连网成功，重置默认加密方式
                 wifi_enc = WPA;
                 isBoot = false;
+                finish();
             }
         }
 

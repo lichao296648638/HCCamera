@@ -12,13 +12,13 @@ public class BleProfile {
     private static final String TAG = "BleProfile";
 
     //蓝牙Service的UUID
-    public static final int UUID_SERVER = 0xC3E6FEA0;
+    public static final String UUID_SERVER = "C3E6FEA0-E966-1000-8000-BE99C223DF6A";
 
     //手机→ble设备的UUID
-    public static final int UUID_TX = 0xC3E6FEA1;
+    public static final String UUID_TX = "C3E6FEA1-E966-1000-8000-BE99C223DF6A";
 
     //ble设备→手机的UUID
-    public static final int UUID_RX = 0xC3E6FEA2;
+    public static final String UUID_RX = "C3E6FEA2-E966-1000-8000-BE99C223DF6A";
 
     /**
      * 包头

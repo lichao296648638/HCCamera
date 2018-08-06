@@ -314,15 +314,43 @@ public class Http {
                 .subscribe(subscriber);
     }
 
+//    /**
+//     * 7.结束推流
+//     *
+//     * @param subscriber 订阅
+//     * @param param      设备编号
+//     */
+//    public void endPush(Subscriber<ResponseState> subscriber, String param) {
+//        Observable<ResponseState> observable = retrofit.create(NetworkService.class)
+//                .endPush(param).onErrorResumeNext(new ErrorFunc<ResponseState>());
+//        observable.observeOn(mainThread())
+//                .subscribeOn(Schedulers.io())
+//                .subscribe(subscriber);
+//    }
+
     /**
-     * 7.结束推流
+     * 8.上报设备装填
      *
      * @param subscriber 订阅
-     * @param param      设备编号
+     * @param param      用户Id
      */
-    public void endPush(Subscriber<ResponseState> subscriber, String param) {
+    public void postDeviceState(Subscriber<ResponseState> subscriber, Map<String, Object> param) {
         Observable<ResponseState> observable = retrofit.create(NetworkService.class)
-                .endPush(param).onErrorResumeNext(new ErrorFunc<ResponseState>());
+                .postDeviceState(param).onErrorResumeNext(new ErrorFunc<ResponseState>());
+        observable.observeOn(mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(subscriber);
+    }
+
+    /**
+     * 9.直播间心跳
+     *
+     * @param subscriber 订阅
+     * @param param      用户Id
+     */
+    public void roomHeart(Subscriber<ResponseState> subscriber, Map<String, Object> param) {
+        Observable<ResponseState> observable = retrofit.create(NetworkService.class)
+                .roomHeart(param).onErrorResumeNext(new ErrorFunc<ResponseState>());
         observable.observeOn(mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe(subscriber);

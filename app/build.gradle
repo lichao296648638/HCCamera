@@ -30,7 +30,7 @@ android {
         //------jpush start--------//
         ndk {
             //选择要添加的对应cpu类型的.so库。
-            abiFilters 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64', 'mips', 'mips64'
+            abiFilters "armeabi", "armeabi-v7a"
             // 还可以添加 'x86', 'x86_64', 'mips', 'mips64'
         }
 
@@ -44,6 +44,7 @@ android {
         //写入脚本中配置好的各平台密钥
         buildConfigField "int", "TENCENT_SDK_ID",  getTencentSDKId()
         buildConfigField "int", "TENCENT_ACCOUNT_TYPE", getTencentAccountType()
+        //写入蓝牙UUID
 
     }
 

@@ -3,6 +3,8 @@ package com.hushijie.hccamera.activity;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
@@ -29,6 +31,8 @@ import com.tencent.ilivesdk.view.AVRootView;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -59,7 +63,7 @@ public class ConversationActivity extends Activity implements IRoomView, ILoginV
     /**
      * 联网参数
      */
-    private Map<String, Object> mapParam = new HashMap();
+    private Map<String, Object> mMapParam = new HashMap();
 
 //    /**
 //     * 腾讯云登陆工具类
@@ -219,28 +223,28 @@ public class ConversationActivity extends Activity implements IRoomView, ILoginV
      * 停止推流
      */
     private void stopPush() {
-        //通知server停止推流
-        Http.getInstance().endPush(new SimpleSubscriber<ResponseState>() {
-
-            @Override
-            public void onNext(ResponseState entity) {
-                ToastUtils.s(entity.getTip());
-            }
-        }, Constants.IMEI);
-
-        ILiveRoomManager.getInstance().stopPushStream(0, // 直播码模式下填0即可
-                new ILiveCallBack() {
-                    @Override
-                    public void onSuccess(Object data) {
-                        // 停止成功
-
-                    }
-
-                    @Override
-                    public void onError(String module, int errCode, String errMsg) {
-                        // 停止失败
-                    }
-                });
+//        //通知server停止推流
+//        Http.getInstance().endPush(new SimpleSubscriber<ResponseState>() {
+//
+//            @Override
+//            public void onNext(ResponseState entity) {
+//                ToastUtils.s(entity.getTip());
+//            }
+//        }, Constants.IMEI);
+//
+//        ILiveRoomManager.getInstance().stopPushStream(0, // 直播码模式下填0即可
+//                new ILiveCallBack() {
+//                    @Override
+//                    public void onSuccess(Object data) {
+//                        // 停止成功
+//
+//                    }
+//
+//                    @Override
+//                    public void onError(String module, int errCode, String errMsg) {
+//                        // 停止失败
+//                    }
+//                });
     }
 
     /**
@@ -273,5 +277,7 @@ public class ConversationActivity extends Activity implements IRoomView, ILoginV
         stopPush();
         RoomHelper.getInstance().quitRoom();
     }
+
+
 
 }

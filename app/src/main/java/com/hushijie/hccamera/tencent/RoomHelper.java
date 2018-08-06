@@ -2,6 +2,8 @@ package com.hushijie.hccamera.tencent;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Message;
 
 import com.hushijie.hccamera.Constants;
 import com.hushijie.hccamera.R;
@@ -20,17 +22,66 @@ import com.tencent.ilivesdk.data.ILivePushRes;
 import com.tencent.ilivesdk.data.ILivePushUrl;
 import com.tencent.ilivesdk.view.AVRootView;
 
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+
 /**
  * 腾讯云创建房间帮助类
  * Created by lichao on 2018/7/17.
  */
 
 public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoomOption.onRoomDisconnectListener {
+    /**
+     * 心跳定时器
+     */
+    private final Timer timer;
+    /**
+     * 心跳任务
+     */
+    private final TimerTask task;
     private IRoomView roomView;
     private Activity mActivity;
     private static RoomHelper mRoomHelper;
 
+    /**
+     * 联网参数-map
+     */
+    private Map<String, Object> mMapParam;
+
+    private Handler handler;
+    /**
+     * 心跳消息
+     */
+    private int MSG_ROOM_HEART = 0;
+
     private RoomHelper() {
+        //该任务触发机制
+        timer = new Timer(true);
+        task = new TimerTask() {
+            public void run() {
+                Message msg = new Message();
+                msg.what = MSG_ROOM_HEART;
+                handler.sendMessage(msg);
+            }
+
+        };
+
+        handler = new Handler() {
+
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                if (msg.what == MSG_ROOM_HEART) {
+                    Http.getInstance().roomHeart(new SimpleSubscriber<ResponseState>() {
+
+                        @Override
+                        public void onNext(ResponseState entity) {
+                            ToastUtils.s(entity.getTip());
+                        }
+                    }, mMapParam);
+                }
+            }
+        };
     }
 
     public static RoomHelper getInstance() {
@@ -61,7 +112,7 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
      * @param bRecord       是否由设备录制并上传
      * @return
      */
-    public int createRoom(int roomId, String privateMapKey, final boolean bRecord) {
+    public int createRoom(final int roomId, String privateMapKey, final boolean bRecord) {
         ILiveRoomOption option = new ILiveRoomOption()
                 .authBuffer(privateMapKey.getBytes())
                 .imsupport(false)       // 不需要IM功能
@@ -76,6 +127,7 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
             public void onSuccess(Object data) {
                 //加入房间
                 roomView.onEnterRoom();
+
                 //开启推流
                 ILivePushOption.RecordFileType recordFileType = bRecord ?
                         ILivePushOption.RecordFileType.RECORD_HLS_FLV_MP4 : ILivePushOption.RecordFileType.NONE;
@@ -94,8 +146,8 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
                                 // 处理播放地址
                             }
                         }
-
-
+                        //开启直播间心跳
+                        roomHeart(roomId);
                     }
 
                     @Override
@@ -114,7 +166,7 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
 
 
     // 加入房间
-    public int joinRoom(int roomId, String privateMapKey) {
+    public int joinRoom(final int roomId, String privateMapKey) {
         ILiveRoomOption option = new ILiveRoomOption()
                 .authBuffer(privateMapKey.getBytes())
                 .imsupport(false)       // 不需要IM功能
@@ -131,6 +183,8 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
                 //打开摄像头和麦克风
                 enableCamera(ILiveConstants.FRONT_CAMERA, true);
                 enableMic(true);
+                //开启直播间心跳
+                roomHeart(roomId);
             }
 
             @Override
@@ -160,7 +214,8 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
         } else {
             mActivity.finish();
         }
-
+        //结束心跳
+        timer.cancel();
         return i;
     }
 
@@ -194,5 +249,19 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
     // 麦克风
     public int enableMic(boolean enable) {
         return ILiveRoomManager.getInstance().enableMic(enable);
+    }
+
+
+    /**
+     * 直播间心跳
+     */
+    private void roomHeart(int roomID) {
+        //该任务内容
+        mMapParam.clear();
+        mMapParam.put("no", Constants.IMEI);
+        mMapParam.put("roomID", roomID);
+        //每5S触发一次
+        timer.purge();
+        timer.schedule(task, 0, 5 * 1000);
     }
 }

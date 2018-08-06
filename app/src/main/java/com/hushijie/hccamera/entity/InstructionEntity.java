@@ -21,6 +21,7 @@ public class InstructionEntity implements Serializable {
      * isRaplace : true
      * lastBleAddress : ab:cd:ef
      * sendTime : "150121252112121"
+     * direction : "top"
      */
     private String idenKey;
     private long equipmentNo;
@@ -32,6 +33,8 @@ public class InstructionEntity implements Serializable {
     private String bleName;
     private boolean isReplace;
     private String lastBleAddress;
+    private String direction;
+    private String sendTime;
 
     public String getSendTime() {
         return sendTime;
@@ -41,10 +44,17 @@ public class InstructionEntity implements Serializable {
         this.sendTime = sendTime;
     }
 
-    private String sendTime;
 
     public String getBleAddress() {
         return bleAddress;
+    }
+
+    public String getDirection() {
+        return direction;
+    }
+
+    public void setDirection(String direction) {
+        this.direction = direction;
     }
 
     public void setBleAddress(String bleAddress) {
@@ -91,7 +101,6 @@ public class InstructionEntity implements Serializable {
         this.instruction = instruction;
     }
 
-
     public int getAccountId() {
         return accountId;
     }
@@ -107,7 +116,6 @@ public class InstructionEntity implements Serializable {
     public void setOrganId(int organId) {
         this.organId = organId;
     }
-
 
     public boolean isReplace() {
         return isReplace;

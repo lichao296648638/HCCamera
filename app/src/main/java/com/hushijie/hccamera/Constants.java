@@ -14,7 +14,7 @@ public class Constants {
     public static String IMEI = "";
 
     //电量
-    public static String BATTERY = "100%";
+    public static int BATTERY = 100;
 
     //成功
     public static final int CODE_SUCCESS = 1;

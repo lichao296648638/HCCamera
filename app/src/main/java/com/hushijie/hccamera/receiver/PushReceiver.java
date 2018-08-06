@@ -15,6 +15,7 @@ import com.hushijie.hccamera.entity.JoinRoomEntity;
 import com.hushijie.hccamera.network.Http;
 import com.hushijie.hccamera.network.ResponseState;
 import com.hushijie.hccamera.network.SimpleSubscriber;
+import com.hushijie.hccamera.tencent.RoomHelper;
 import com.hushijie.hccamera.utils.Logs;
 import com.hushijie.hccamera.utils.ToastUtils;
 
@@ -51,6 +52,22 @@ public class PushReceiver extends BroadcastReceiver {
      * 查询设备是否在线指令
      */
     public final String ONLINE = "api_is_online";
+
+    /**
+     * 查询设备是否在线指令
+     */
+    public final String QUIT = "api_close_call";
+
+    /**
+     * 旋转摄像头
+     */
+    public final String ROTATE = "api_rotate_device";
+
+
+    /**
+     * 开始护理
+     */
+    public final String SERVICE = "api_start_service";
 
 
     /**
@@ -105,8 +122,8 @@ public class PushReceiver extends BroadcastReceiver {
                             }
                             long currTime = System.currentTimeMillis();
                             long sendTime = Long.parseLong(instructionEntity.getSendTime());
-                            //超时不处理
-                            if ((currTime - sendTime) / 1000 > 10)
+                            //超时5秒不处理
+                            if ((currTime - sendTime) / 1000 > 5)
                                 return;
                             Http.getInstance().postInstruction(new SimpleSubscriber<ResponseState>() {
 
@@ -125,7 +142,6 @@ public class PushReceiver extends BroadcastReceiver {
                         case INCOMING_CALL:
                             //获取房号信息后开启视频页面
                             Http.getInstance().joinRoom(new SimpleSubscriber<JoinRoomEntity>() {
-
                                 @Override
                                 public void onNext(JoinRoomEntity entity) {
                                     Intent videoIntent = new Intent();
@@ -136,6 +152,64 @@ public class PushReceiver extends BroadcastReceiver {
                                     context.startActivity(videoIntent);
                                 }
                             }, Constants.IMEI);
+                            break;
+                        //退出房间
+                        case QUIT:
+                            RoomHelper.getInstance().quitRoom();
+                            break;
+                        //旋转设备
+                        case ROTATE:
+                            JSONObject backRotateJson = Http.entity2String("", 1, "旋转成功");
+                            try {
+                                backRotateJson.put("idenKey", instructionEntity.getIdenKey());
+                                backRotateJson.put("idenAccountId", instructionEntity.getIdenAccountId());
+                                backRotateJson.put("data", new JSONObject());
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                            Http.getInstance().postInstruction(new SimpleSubscriber<ResponseState>() {
+
+                                @Override
+                                public void onNext(ResponseState entity) {
+                                    ToastUtils.s(entity.getTip());
+                                }
+
+                                @Override
+                                public void onError(Throwable e) {
+                                    super.onError(e);
+                                }
+                            }, backRotateJson);
+                            break;
+
+                        //护理服务
+                        case SERVICE:
+                            //开启房间
+                            Intent createRoomIntent = new Intent(context, ConversationActivity.class);
+                            createRoomIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            createRoomIntent.putExtra(EXT_KEY_REQUEST, ConversationActivity.REQUEST_CODE_START_PUSH);
+                            context.startActivity(createRoomIntent);
+                            //告知小程序开始准备护理
+                            JSONObject backServiceJson = Http.entity2String("", 1, "开始护理");
+                            try {
+                                backServiceJson.put("idenKey", instructionEntity.getIdenKey());
+                                backServiceJson.put("idenAccountId", instructionEntity.getIdenAccountId());
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                            Http.getInstance().postInstruction(new SimpleSubscriber<ResponseState>() {
+
+                                @Override
+                                public void onNext(ResponseState entity) {
+                                    ToastUtils.s(entity.getTip());
+                                }
+
+                                @Override
+                                public void onError(Throwable e) {
+                                     super.onError(e);
+                                }
+                            }, backServiceJson);
                             break;
                     }
                 }

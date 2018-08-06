@@ -20,7 +20,7 @@ public class BatteryReceiver extends BroadcastReceiver {
         int current = intent.getExtras().getInt("level");// 获得当前电量
         int total = intent.getExtras().getInt("scale");// 获得总电量
         int percent = current * 100 / total;
-        Constants.BATTERY = percent + "%";
+        Constants.BATTERY = percent;
         if (percent <= 15) {
             MediaUtil.play(R.raw.low_power);
         }

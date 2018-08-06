@@ -95,6 +95,24 @@ public interface NetworkService {
     @POST("webrtc/hardware/record_service/end")
     Observable<ResponseState> endPush(@Field("no") String param);
 
+    /**
+     * 上报设备状态
+     *
+     * @param params 参数列表
+     */
+    @POST("hardware/receive/equipment/update/status")
+    @FormUrlEncoded
+    Observable<ResponseState> postDeviceState(@FieldMap Map<String, Object> params);
+
+    /**
+     * 直播间心跳接口
+     *
+     * @param params 参数列表
+     */
+    @POST("webrtc/hardware/heartbeat")
+    @FormUrlEncoded
+    Observable<ResponseState> roomHeart(@FieldMap Map<String, Object> params);
+
 
 
 }
