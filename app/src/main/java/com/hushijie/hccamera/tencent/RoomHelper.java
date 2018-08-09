@@ -1,17 +1,14 @@
 package com.hushijie.hccamera.tencent;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 
 import com.hushijie.hccamera.Constants;
-import com.hushijie.hccamera.R;
 import com.hushijie.hccamera.activity.WifiActivity;
 import com.hushijie.hccamera.network.Http;
 import com.hushijie.hccamera.network.ResponseState;
 import com.hushijie.hccamera.network.SimpleSubscriber;
-import com.hushijie.hccamera.utils.MediaUtil;
 import com.hushijie.hccamera.utils.ToastUtils;
 import com.tencent.ilivesdk.ILiveCallBack;
 import com.tencent.ilivesdk.ILiveConstants;
@@ -22,6 +19,7 @@ import com.tencent.ilivesdk.data.ILivePushRes;
 import com.tencent.ilivesdk.data.ILivePushUrl;
 import com.tencent.ilivesdk.view.AVRootView;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -35,11 +33,11 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
     /**
      * 心跳定时器
      */
-    private final Timer timer;
+    private Timer timer;
     /**
      * 心跳任务
      */
-    private final TimerTask task;
+    private  TimerTask task;
     private IRoomView roomView;
     private Activity mActivity;
     private static RoomHelper mRoomHelper;
@@ -47,7 +45,7 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
     /**
      * 联网参数-map
      */
-    private Map<String, Object> mMapParam;
+    private Map<String, Object> mMapParam = new HashMap<>();
 
     private Handler handler;
     /**
@@ -56,16 +54,8 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
     private int MSG_ROOM_HEART = 0;
 
     private RoomHelper() {
-        //该任务触发机制
-        timer = new Timer(true);
-        task = new TimerTask() {
-            public void run() {
-                Message msg = new Message();
-                msg.what = MSG_ROOM_HEART;
-                handler.sendMessage(msg);
-            }
-
-        };
+        //初始化任务
+        initTask();
 
         handler = new Handler() {
 
@@ -77,6 +67,10 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
                         @Override
                         public void onNext(ResponseState entity) {
                             ToastUtils.s(entity.getTip());
+                            //检测是否已经退出房间
+                            if (entity.getCode() == Constants.CODE_ALREADY_EXIT) {
+                                quitRoom();
+                            }
                         }
                     }, mMapParam);
                 }
@@ -86,6 +80,7 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
 
     public static RoomHelper getInstance() {
         if (mRoomHelper == null) {
+
             mRoomHelper = new RoomHelper();
         }
         return mRoomHelper;
@@ -153,6 +148,7 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
                     @Override
                     public void onError(String module, int errCode, String errMsg) {
                         // 处理推流失败
+                        quitRoom();
                     }
                 });
             }
@@ -202,20 +198,27 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
             i = ILiveRoomManager.getInstance().quitRoom(new ILiveCallBack() {
                 @Override
                 public void onSuccess(Object data) {
-                    roomView.onQuitRoomSuccess();
+                    if (roomView != null)
+                        roomView.onQuitRoomSuccess();
 
                 }
 
                 @Override
                 public void onError(String module, int errCode, String errMsg) {
-                    roomView.onQuitRoomFailed(module, errCode, errMsg);
+                    if (roomView != null)
+                        roomView.onQuitRoomFailed(module, errCode, errMsg);
                 }
             });
         } else {
             mActivity.finish();
         }
         //结束心跳
-        timer.cancel();
+        if(timer != null){
+            timer.purge();
+            timer.cancel();
+            timer = null;
+        }
+
         return i;
     }
 
@@ -261,7 +264,23 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
         mMapParam.put("no", Constants.IMEI);
         mMapParam.put("roomID", roomID);
         //每5S触发一次
-        timer.purge();
+
+        initTask();
         timer.schedule(task, 0, 5 * 1000);
+    }
+
+    /**
+     * 初始化心跳
+     */
+    private void initTask() {
+        timer = new Timer(true);
+        task = new TimerTask() {
+            public void run() {
+                Message msg = new Message();
+                msg.what = MSG_ROOM_HEART;
+                handler.sendMessage(msg);
+            }
+
+        };
     }
 }

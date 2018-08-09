@@ -1,5 +1,8 @@
 package com.hushijie.hccamera.tencent;
 
+
+
+
 import com.tencent.ilivesdk.core.ILiveLoginManager;
 
 import java.util.LinkedList;

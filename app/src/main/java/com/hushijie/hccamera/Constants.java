@@ -25,5 +25,6 @@ public class Constants {
     //此用户已绑定本设备,无需在绑定
     public static final int CODE_USER_BINDED = 20020;
 
-
+    //已退出房间
+    public static final int CODE_ALREADY_EXIT = 5003;
 }

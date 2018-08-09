@@ -84,6 +84,7 @@
             </intent-filter>
         </receiver>
         <activity android:name=".activity.ConversationActivity"></activity>
+
     </application>
 
 </manifest>

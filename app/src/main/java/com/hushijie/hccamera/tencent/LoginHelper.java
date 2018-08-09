@@ -1,6 +1,6 @@
 package com.hushijie.hccamera.tencent;
 
-import com.hushijie.hccamera.tencent.ILoginView;
+
 import com.tencent.ilivesdk.ILiveCallBack;
 import com.tencent.ilivesdk.core.ILiveLoginManager;
 

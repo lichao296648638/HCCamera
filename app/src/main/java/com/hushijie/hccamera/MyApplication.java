@@ -75,9 +75,9 @@ public class MyApplication extends Application {
         TelephonyManager TelephonyMgr = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
         @SuppressLint("MissingPermission")
         String imei = TelephonyMgr.getDeviceId();
-        Constants.IMEI = "982387985929";
-//        Constants.IMEI = imei;
-        String alias = String.format("hc_equipmentNo_%s", imei);
+//        Constants.IMEI = "982387985929"
+        Constants.IMEI = imei;
+        String alias = String.format("hc_equipmentNo_%s", Constants.IMEI);
         JPushInterface.setAlias(this, 0, alias);
         //初始化腾讯云
         ILiveSDK.getInstance().initSdk(this,

@@ -23,14 +23,14 @@ android {
     defaultConfig {
         applicationId "com.hushijie.hccamera"
         minSdkVersion 19
-        targetSdkVersion 23
+        targetSdkVersion 19
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         //------jpush start--------//
         ndk {
             //选择要添加的对应cpu类型的.so库。
-            abiFilters "armeabi", "armeabi-v7a"
+            abiFilters "armeabi", "armeabi-v7a" , 'mips', 'mips64'
             // 还可以添加 'x86', 'x86_64', 'mips', 'mips64'
         }
 
@@ -79,6 +79,7 @@ android {
 
 
         }
+
         release {
 
             minifyEnabled false
@@ -97,72 +98,48 @@ android {
         }
     }
 
-
     productFlavors {
         //测试版
         dev {
             minSdkVersion 19
             versionNameSuffix "-dev"
 //            applicationIdSuffix '.dev'
-
-
             resValue "string", "app_name", "智摄dev"
-
             buildConfigField "String", "SERVER", '"http://hctest.hushijie.com.cn:8080/hc-system/"'
-
             flavorDimensions "serverType"
-
         }
         //廖子阳版
         lzy {
             minSdkVersion 19
             versionNameSuffix "-lzy"
 //            applicationIdSuffix '.wsr'
-
             resValue "string", "app_name", "智摄lzy"
-
             buildConfigField "String", "SERVER", '"http://192.168.0.100:80/"'
-
             flavorDimensions "serverType"
-
-
         }
-
         //胡凯博版
         hkb {
             minSdkVersion 19
             versionNameSuffix "-hkb"
 //            applicationIdSuffix '.wsr'
-
             resValue "string", "app_name", "智摄hkb"
-
             buildConfigField "String", "SERVER", '"http://192.168.1.108:8888/mock/13/"'
-
             flavorDimensions "serverType"
-
         }
-
         //内网服务器版
         nwf {
             minSdkVersion 19
             versionNameSuffix "-nwf"
 //            applicationIdSuffix '.wsr'
-
             resValue "string", "app_name", "智摄nwf"
-
             buildConfigField "String", "SERVER", '"http://192.168.1.200:8080/hc-system/"'
             flavorDimensions "serverType"
-
         }
-
         //服务器版
         ser {
-            minSdkVersion 18
-
+            minSdkVersion 19
             resValue "string", "app_name", "智摄"
-
             buildConfigField "String", "SERVER", '"http://q.haokanghu.cn/"'
-
             flavorDimensions "serverType"
         }
     }
@@ -176,10 +153,10 @@ android {
 }
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:25.2.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     implementation 'com.android.support:design:25.4.0'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
@@ -208,6 +185,8 @@ dependencies {
     //二维码扫描库
     implementation 'cn.bingoogolapple:bga-qrcode-zbar:1.2.5'
     //腾讯云音视频
-    compile 'com.tencent.ilivesdk:ilivesdk:1.8.5'  //其中latest.release指代最新iLiveSDK版本号
+    compile 'com.tencent.ilivesdk:ilivesdk:1.8.5' //其中latest.release指代最新iLiveSDK版本号
+    //串口通信库
+    compile 'com.github.kongqw:AndroidSerialPort:1.0.1'
 
 }

@@ -4,9 +4,9 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Paint;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.hushijie.hccamera.Constants;
 import com.hushijie.hccamera.activity.ConversationActivity;
@@ -18,9 +18,15 @@ import com.hushijie.hccamera.network.SimpleSubscriber;
 import com.hushijie.hccamera.tencent.RoomHelper;
 import com.hushijie.hccamera.utils.Logs;
 import com.hushijie.hccamera.utils.ToastUtils;
+import com.kongqw.serialportlibrary.Device;
+import com.kongqw.serialportlibrary.SerialPortFinder;
+import com.kongqw.serialportlibrary.SerialPortManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.File;
+import java.util.ArrayList;
 
 import cn.jpush.android.api.JPushInterface;
 
@@ -75,7 +81,35 @@ public class PushReceiver extends BroadcastReceiver {
      */
     private final String INCOMING_CALL = "api_incoming_call";
 
+    /**
+     * 串口通信工具
+     */
+    private SerialPortManager mSerialPortManager = new SerialPortManager();
+
+    /**
+     * 串口查找工具
+     */
+    private SerialPortFinder serialPortFinder = new SerialPortFinder();
+
+    /**
+     * 串口列表
+     */
+    private ArrayList<Device> devices = new ArrayList<>();
+
+    /**
+     * 是否已经打开串口
+     */
+    private boolean port = false;
+
+
     private String mInstruction;
+
+    public PushReceiver() {
+        //打开串口
+        if (!port)
+            port = mSerialPortManager.openSerialPort(new File("/dev/ttyMT0"), 9600);
+        Logs.i(TAG, "串口状态" + port);
+    }
 
     @Override
     public void onReceive(final Context context, Intent intent) {
@@ -159,7 +193,29 @@ public class PushReceiver extends BroadcastReceiver {
                             break;
                         //旋转设备
                         case ROTATE:
-                            JSONObject backRotateJson = Http.entity2String("", 1, "旋转成功");
+                            JSONObject backRotateJson = null;
+                            switch (instructionEntity.getDirection()) {
+                                case "top":
+                                    break;
+                                case "left":
+                                    if (rotateCamera("left")) {
+                                        backRotateJson = Http.entity2String("", 1, "左转成功");
+                                    } else {
+                                        backRotateJson = Http.entity2String("", 0, "左转失败");
+                                    }
+
+                                    break;
+                                case "right":
+                                    if (rotateCamera("right")) {
+                                        backRotateJson = Http.entity2String("", 1, "右转成功");
+                                    } else {
+                                        backRotateJson = Http.entity2String("", 0, "右转失败");
+                                    }
+                                    break;
+                                case "bottom":
+                                    break;
+                            }
+
                             try {
                                 backRotateJson.put("idenKey", instructionEntity.getIdenKey());
                                 backRotateJson.put("idenAccountId", instructionEntity.getIdenAccountId());
@@ -207,7 +263,7 @@ public class PushReceiver extends BroadcastReceiver {
 
                                 @Override
                                 public void onError(Throwable e) {
-                                     super.onError(e);
+                                    super.onError(e);
                                 }
                             }, backServiceJson);
                             break;
@@ -226,5 +282,79 @@ public class PushReceiver extends BroadcastReceiver {
         } else {
             Logs.d(TAG, "Unhandled intent - " + intent.getAction());
         }
+    }
+
+    /**
+     * 旋转摄像头
+     *
+     * @param direction 方向
+     */
+    private boolean rotateCamera(String direction) {
+        boolean sendBytes = false;
+        switch (direction) {
+            case "top":
+                break;
+            case "left":
+                // 转换左转命令代码
+                String strLeft = "34";
+
+                if (strLeft.length() == 0) {
+                    return false;
+                }
+
+
+                byte[] bLeft = new byte[strLeft.length() >> 1];
+
+                try {
+                    for (int i = 0; i < (bLeft.length); i++) {
+                        bLeft[i] = (byte) (Integer.parseInt(
+                                strLeft.substring(i << 1, (i + 1) << 1), 16));
+
+                        Logs.d(TAG,
+                                "bLeft[" + i + "]:" + Integer.toHexString(bLeft[i]));
+                    }
+                } catch (java.lang.NumberFormatException nfe) {
+                    Logs.d(TAG, "nfe:" + nfe.getMessage());
+                    return false;
+                }
+                //向串口发送代码
+                sendBytes = mSerialPortManager.sendBytes(bLeft);
+//                mSerialPortManager.closeSerialPort();
+                return sendBytes;
+
+
+            case "right":
+                // 转换右转命令代码
+                String strRight = "33";
+
+                if (strRight.length() == 0) {
+                    return false;
+                }
+
+
+                byte[] bRight = new byte[strRight.length() >> 1];
+
+                try {
+                    for (int i = 0; i < (bRight.length); i++) {
+                        bRight[i] = (byte) (Integer.parseInt(
+                                strRight.substring(i << 1, (i + 1) << 1), 16));
+
+                        Logs.d(TAG,
+                                "bRight[" + i + "]:" + Integer.toHexString(bRight[i]));
+                    }
+                } catch (java.lang.NumberFormatException nfe) {
+                    Logs.d(TAG, "nfe:" + nfe.getMessage());
+                    return false;
+                }
+                //向串口发送代码
+
+                sendBytes = mSerialPortManager.sendBytes(bRight);
+//                mSerialPortManager.closeSerialPort();
+                return sendBytes;
+            case "bottom":
+                break;
+        }
+        return false;
+
     }
 }
