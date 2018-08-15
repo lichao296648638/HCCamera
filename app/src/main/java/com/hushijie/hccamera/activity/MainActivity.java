@@ -11,6 +11,7 @@ import android.widget.Button;
 import com.hushijie.hccamera.Constants;
 import com.hushijie.hccamera.MyApplication;
 import com.hushijie.hccamera.R;
+import com.hushijie.hccamera.entity.InstructionEntity;
 import com.hushijie.hccamera.network.Http;
 import com.hushijie.hccamera.network.ResponseState;
 import com.hushijie.hccamera.network.SimpleSubscriber;
@@ -70,12 +71,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        //判断是不是开机自启动后自动联网
+        //判断是不是开机自启动
         Intent comingIntent = getIntent();
         if (comingIntent.getStringExtra(BootReceiver.EXT_KEY_BOOT) != null) {
+            //初始化wifi
             Intent intent = new Intent(this, WifiActivity.class);
             intent.putExtra(BootReceiver.EXT_KEY_BOOT, BootReceiver.EXT_VALUE_BOOT);
             startActivity(intent);
+            //初始化蓝牙
+            Intent initBleIntent = new Intent(BluetoothInstructionReceiver.ACTION_INS_BLE);
+            initBleIntent.putExtra(EXT_KEY_INS, BluetoothInstructionReceiver.RECONNECT);
+            sendBroadcast(initBleIntent);
         }
         //上报设备状态
         postDeviceState();
@@ -130,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
+
         //该任务触发机制
         Timer timer = new Timer(true);
         TimerTask task = new TimerTask() {

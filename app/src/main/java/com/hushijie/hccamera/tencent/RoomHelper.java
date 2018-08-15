@@ -68,7 +68,7 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
                         public void onNext(ResponseState entity) {
                             ToastUtils.s(entity.getTip());
                             //检测是否已经退出房间
-                            if (entity.getCode() == Constants.CODE_ALREADY_EXIT) {
+                            if (entity.getCode() != Constants.CODE_ALREADY_EXIT) {
                                 quitRoom();
                             }
                         }
@@ -148,7 +148,7 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
                     @Override
                     public void onError(String module, int errCode, String errMsg) {
                         // 处理推流失败
-                        quitRoom();
+//                        quitRoom();
                     }
                 });
             }
@@ -186,12 +186,20 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
             @Override
             public void onError(String module, int errCode, String errMsg) {
                 roomView.onEnterRoomFailed(module, errCode, errMsg);
+                // 处理推流失败
+                quitRoom();
             }
         });
     }
 
     // 退出房间
     public int quitRoom() {
+        //结束心跳
+        if(timer != null){
+            timer.purge();
+            timer.cancel();
+            timer = null;
+        }
         int i = 0;
         //有网情况下退出房间
         if (WifiActivity.getNetWorkInfo() == 1) {
@@ -212,12 +220,7 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
         } else {
             mActivity.finish();
         }
-        //结束心跳
-        if(timer != null){
-            timer.purge();
-            timer.cancel();
-            timer = null;
-        }
+
 
         return i;
     }
@@ -241,7 +244,6 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
     public void onRoomDisconnect(int errCode, String errMsg) {
         // 处理房间中断(一般为断网或长时间无长行后台回收房间)
         quitRoom();
-
     }
 
     // 摄像头
@@ -264,7 +266,6 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
         mMapParam.put("no", Constants.IMEI);
         mMapParam.put("roomID", roomID);
         //每5S触发一次
-
         initTask();
         timer.schedule(task, 0, 5 * 1000);
     }

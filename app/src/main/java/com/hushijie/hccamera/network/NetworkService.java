@@ -2,6 +2,7 @@ package com.hushijie.hccamera.network;
 
 
 import com.hushijie.hccamera.entity.JoinRoomEntity;
+import com.hushijie.hccamera.entity.PostBleDataEntity;
 import com.hushijie.hccamera.entity.StartPushEntity;
 import com.hushijie.hccamera.entity.TencentSigEntity;
 
@@ -113,6 +114,14 @@ public interface NetworkService {
     @FormUrlEncoded
     Observable<ResponseState> roomHeart(@FieldMap Map<String, Object> params);
 
+    /**
+     * 发送采集好的手环数据
+     *
+     * @param params 参数列表
+     */
+    @POST("hardware/receive/health_collect")
+    @FormUrlEncoded
+    Observable<ResponseState<PostBleDataEntity>> postBleData(@FieldMap Map<String, Object> params);
 
 
 }

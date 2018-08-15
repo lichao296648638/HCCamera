@@ -126,6 +126,17 @@ android {
             buildConfigField "String", "SERVER", '"http://192.168.1.108:8888/mock/13/"'
             flavorDimensions "serverType"
         }
+
+        //关新帅版本
+        gxs {
+            minSdkVersion 19
+            versionNameSuffix "-gxs"
+//            applicationIdSuffix '.wsr'
+            resValue "string", "app_name", "智摄hkb"
+            buildConfigField "String", "SERVER", '"http://192.168.1.108:8080/"'
+            flavorDimensions "serverType"
+        }
+
         //内网服务器版
         nwf {
             minSdkVersion 19

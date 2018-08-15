@@ -13,6 +13,9 @@ public class Constants {
     //IMEI
     public static String IMEI = "";
 
+    //蓝牙设备ID
+    public static String BLE_ID = "";
+
     //电量
     public static int BATTERY = 100;
 
@@ -27,4 +30,8 @@ public class Constants {
 
     //已退出房间
     public static final int CODE_ALREADY_EXIT = 5003;
+
+
+    //是否退出了房间
+    public static boolean IN_ROOM = false;
 }

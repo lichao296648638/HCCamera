@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.hushijie.hccamera.Constants;
 import com.hushijie.hccamera.activity.ConversationActivity;
@@ -17,6 +16,7 @@ import com.hushijie.hccamera.network.ResponseState;
 import com.hushijie.hccamera.network.SimpleSubscriber;
 import com.hushijie.hccamera.tencent.RoomHelper;
 import com.hushijie.hccamera.utils.Logs;
+import com.hushijie.hccamera.utils.SerialPortProfile;
 import com.hushijie.hccamera.utils.ToastUtils;
 import com.kongqw.serialportlibrary.Device;
 import com.kongqw.serialportlibrary.SerialPortFinder;
@@ -29,8 +29,6 @@ import java.io.File;
 import java.util.ArrayList;
 
 import cn.jpush.android.api.JPushInterface;
-
-import static com.inuker.bluetooth.library.utils.BluetoothUtils.sendBroadcast;
 
 /**
  * 极光推送消息接收者
@@ -107,7 +105,7 @@ public class PushReceiver extends BroadcastReceiver {
     public PushReceiver() {
         //打开串口
         if (!port)
-            port = mSerialPortManager.openSerialPort(new File("/dev/ttyMT0"), 9600);
+            port = mSerialPortManager.openSerialPort(new File("/dev/ttyMT2"), 9600);
         Logs.i(TAG, "串口状态" + port);
     }
 
@@ -174,18 +172,32 @@ public class PushReceiver extends BroadcastReceiver {
                             break;
                         //视频来电
                         case INCOMING_CALL:
-                            //获取房号信息后开启视频页面
-                            Http.getInstance().joinRoom(new SimpleSubscriber<JoinRoomEntity>() {
+                            //待用户不在房间内再发起
+                            new Thread(new Runnable() {
                                 @Override
-                                public void onNext(JoinRoomEntity entity) {
-                                    Intent videoIntent = new Intent();
-                                    videoIntent.setComponent(new ComponentName("com.hushijie.hccamera", "com.hushijie.hccamera.activity.ConversationActivity"));
-                                    videoIntent.putExtra(EXT_KEY_OBJ, entity);
-                                    videoIntent.putExtra(EXT_KEY_REQUEST, ConversationActivity.REQUEST_CODE_CALL);
-                                    videoIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    context.startActivity(videoIntent);
+                                public void run() {
+                                    while (Constants.IN_ROOM){
+                                        try {
+                                            Thread.sleep(1000);
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                    //获取房号信息后开启视频页面
+                                    Http.getInstance().joinRoom(new SimpleSubscriber<JoinRoomEntity>() {
+                                        @Override
+                                        public void onNext(JoinRoomEntity entity) {
+                                            Intent videoIntent = new Intent();
+                                            videoIntent.setComponent(new ComponentName("com.hushijie.hccamera", "com.hushijie.hccamera.activity.ConversationActivity"));
+                                            videoIntent.putExtra(EXT_KEY_OBJ, entity);
+                                            videoIntent.putExtra(EXT_KEY_REQUEST, ConversationActivity.REQUEST_CODE_CALL);
+                                            videoIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            context.startActivity(videoIntent);
+                                        }
+                                    }, Constants.IMEI);
                                 }
-                            }, Constants.IMEI);
+                            }).start();
+
                             break;
                         //退出房间
                         case QUIT:
@@ -194,28 +206,17 @@ public class PushReceiver extends BroadcastReceiver {
                         //旋转设备
                         case ROTATE:
                             JSONObject backRotateJson = null;
-                            switch (instructionEntity.getDirection()) {
-                                case "top":
-                                    break;
-                                case "left":
-                                    if (rotateCamera("left")) {
-                                        backRotateJson = Http.entity2String("", 1, "左转成功");
-                                    } else {
-                                        backRotateJson = Http.entity2String("", 0, "左转失败");
-                                    }
-
-                                    break;
-                                case "right":
-                                    if (rotateCamera("right")) {
-                                        backRotateJson = Http.entity2String("", 1, "右转成功");
-                                    } else {
-                                        backRotateJson = Http.entity2String("", 0, "右转失败");
-                                    }
-                                    break;
-                                case "bottom":
-                                    break;
+                            //获取旋转方向
+                            String direction = instructionEntity.getDirection();
+                            //转换成串口数据
+                            byte[] data = SerialPortProfile.turn(direction);
+                            //发送串口数据
+                            if (mSerialPortManager.sendBytes(data)) {
+                                backRotateJson = Http.entity2String("", 1, direction + "成功");
+                            } else {
+                                backRotateJson = Http.entity2String("", 0, direction + "失败");
                             }
-
+                            //完事儿后返回一个反馈
                             try {
                                 backRotateJson.put("idenKey", instructionEntity.getIdenKey());
                                 backRotateJson.put("idenAccountId", instructionEntity.getIdenAccountId());
@@ -284,77 +285,77 @@ public class PushReceiver extends BroadcastReceiver {
         }
     }
 
-    /**
-     * 旋转摄像头
-     *
-     * @param direction 方向
-     */
-    private boolean rotateCamera(String direction) {
-        boolean sendBytes = false;
-        switch (direction) {
-            case "top":
-                break;
-            case "left":
-                // 转换左转命令代码
-                String strLeft = "34";
-
-                if (strLeft.length() == 0) {
-                    return false;
-                }
-
-
-                byte[] bLeft = new byte[strLeft.length() >> 1];
-
-                try {
-                    for (int i = 0; i < (bLeft.length); i++) {
-                        bLeft[i] = (byte) (Integer.parseInt(
-                                strLeft.substring(i << 1, (i + 1) << 1), 16));
-
-                        Logs.d(TAG,
-                                "bLeft[" + i + "]:" + Integer.toHexString(bLeft[i]));
-                    }
-                } catch (java.lang.NumberFormatException nfe) {
-                    Logs.d(TAG, "nfe:" + nfe.getMessage());
-                    return false;
-                }
-                //向串口发送代码
-                sendBytes = mSerialPortManager.sendBytes(bLeft);
-//                mSerialPortManager.closeSerialPort();
-                return sendBytes;
-
-
-            case "right":
-                // 转换右转命令代码
-                String strRight = "33";
-
-                if (strRight.length() == 0) {
-                    return false;
-                }
-
-
-                byte[] bRight = new byte[strRight.length() >> 1];
-
-                try {
-                    for (int i = 0; i < (bRight.length); i++) {
-                        bRight[i] = (byte) (Integer.parseInt(
-                                strRight.substring(i << 1, (i + 1) << 1), 16));
-
-                        Logs.d(TAG,
-                                "bRight[" + i + "]:" + Integer.toHexString(bRight[i]));
-                    }
-                } catch (java.lang.NumberFormatException nfe) {
-                    Logs.d(TAG, "nfe:" + nfe.getMessage());
-                    return false;
-                }
-                //向串口发送代码
-
-                sendBytes = mSerialPortManager.sendBytes(bRight);
-//                mSerialPortManager.closeSerialPort();
-                return sendBytes;
-            case "bottom":
-                break;
-        }
-        return false;
-
-    }
+//    /**
+//     * 旋转摄像头
+//     *
+//     * @param data 待发送的串口数据
+//     */
+//    private boolean rotateCamera(byte[] data) {
+//        boolean sendBytes = false;
+//        switch (direction) {
+//            case "top":
+//                break;
+//            case "left":
+//                // 转换左转命令代码
+//                String strLeft = "34";
+//
+//                if (strLeft.length() == 0) {
+//                    return false;
+//                }
+//
+//
+//                byte[] bLeft = new byte[strLeft.length() >> 1];
+//
+//                try {
+//                    for (int i = 0; i < (bLeft.length); i++) {
+//                        bLeft[i] = (byte) (Integer.parseInt(
+//                                strLeft.substring(i << 1, (i + 1) << 1), 16));
+//
+//                        Logs.d(TAG,
+//                                "bLeft[" + i + "]:" + Integer.toHexString(bLeft[i]));
+//                    }
+//                } catch (java.lang.NumberFormatException nfe) {
+//                    Logs.d(TAG, "nfe:" + nfe.getMessage());
+//                    return false;
+//                }
+//                //向串口发送代码
+//                sendBytes = mSerialPortManager.sendBytes(bLeft);
+////                mSerialPortManager.closeSerialPort();
+//                return sendBytes;
+//
+//
+//            case "right":
+//                // 转换右转命令代码
+//                String strRight = "33";
+//
+//                if (strRight.length() == 0) {
+//                    return false;
+//                }
+//
+//
+//                byte[] bRight = new byte[strRight.length() >> 1];
+//
+//                try {
+//                    for (int i = 0; i < (bRight.length); i++) {
+//                        bRight[i] = (byte) (Integer.parseInt(
+//                                strRight.substring(i << 1, (i + 1) << 1), 16));
+//
+//                        Logs.d(TAG,
+//                                "bRight[" + i + "]:" + Integer.toHexString(bRight[i]));
+//                    }
+//                } catch (java.lang.NumberFormatException nfe) {
+//                    Logs.d(TAG, "nfe:" + nfe.getMessage());
+//                    return false;
+//                }
+//                //向串口发送代码
+//
+//                sendBytes = mSerialPortManager.sendBytes(bRight);
+////                mSerialPortManager.closeSerialPort();
+//                return sendBytes;
+//            case "bottom":
+//                break;
+//        }
+//        return false;
+//
+//    }
 }

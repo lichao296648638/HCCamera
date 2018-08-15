@@ -53,6 +53,7 @@ public class ConversationActivity extends Activity implements IRoomView, ILoginV
     @BindView(R.id.bt_quit_room)
     Button btQuitRoom;
 
+
     /**
      * 联网参数
      */
@@ -114,6 +115,7 @@ public class ConversationActivity extends Activity implements IRoomView, ILoginV
     public void onEnterRoom() {
         Logs.i(TAG, "onEnterRoom: ");
         MediaUtil.play(R.raw.incoming_call);
+        Constants.IN_ROOM = true;
 
     }
 
@@ -121,6 +123,7 @@ public class ConversationActivity extends Activity implements IRoomView, ILoginV
     public void onEnterRoomFailed(String module, int errCode, String errMsg) {
         Logs.i(TAG, "onEnterRoomFailed: ");
         finish();
+        Constants.IN_ROOM = false;
     }
 
     @Override
@@ -128,6 +131,7 @@ public class ConversationActivity extends Activity implements IRoomView, ILoginV
         Logs.i(TAG, "onQuitRoomSuccess: ");
         MediaUtil.play(R.raw.call_over);
         finish();
+        Constants.IN_ROOM = false;
 
     }
 
@@ -135,12 +139,16 @@ public class ConversationActivity extends Activity implements IRoomView, ILoginV
     public void onQuitRoomFailed(String module, int errCode, String errMsg) {
         Logs.i(TAG, "onQuitRoomFailed: ");
         finish();
+        Constants.IN_ROOM = false;
+
     }
 
     @Override
     public void onRoomDisconnect(String module, int errCode, String errMsg) {
         Logs.i(TAG, "onRoomDisconnect: ");
         finish();
+        Constants.IN_ROOM = false;
+
     }
 
 
@@ -207,6 +215,8 @@ public class ConversationActivity extends Activity implements IRoomView, ILoginV
                 //如果server请求成功，则开启房间
                 if (entity.getCode() == 1) {
                     RoomHelper.getInstance().createRoom(Integer.parseInt(entity.getRoomID()), entity.getPrivateMapKey(), false);
+                } else {
+                    RoomHelper.getInstance().quitRoom();
                 }
             }
         }, tencentSigEntity.getUserID());

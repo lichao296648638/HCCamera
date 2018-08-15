@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import com.google.gson.Gson;
 import com.hushijie.hccamera.MyApplication;
 import com.hushijie.hccamera.entity.JoinRoomEntity;
+import com.hushijie.hccamera.entity.PostBleDataEntity;
 import com.hushijie.hccamera.entity.StartPushEntity;
 import com.hushijie.hccamera.entity.TencentSigEntity;
 import com.hushijie.hccamera.network.exception.CustomException;
@@ -284,7 +285,7 @@ public class Http {
         observable.observeOn(mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe(subscriber);
-}
+    }
 
     /**
      * 5.发起服务通知
@@ -355,4 +356,22 @@ public class Http {
                 .subscribeOn(Schedulers.io())
                 .subscribe(subscriber);
     }
+
+
+    /**
+     * 10.发送手环蓝牙数据
+     *
+     * @param subscriber 订阅登录请求，得到一个登录令牌
+     * @param param
+     */
+    public void postBleData(Subscriber<PostBleDataEntity> subscriber, Map<String, Object> param) {
+        Observable<PostBleDataEntity> observable = retrofit.create(NetworkService.class)
+                .postBleData(param)
+                .map(new HttpResultFunc<PostBleDataEntity>())
+                .onErrorResumeNext(new ErrorFunc<PostBleDataEntity>());
+        observable.observeOn(mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(subscriber);
+    }
+
 }
