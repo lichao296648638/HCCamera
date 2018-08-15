@@ -55,6 +55,7 @@ public class RoomHelper implements ILiveRoomOption.onExceptionListener, ILiveRoo
 
     private RoomHelper() {
         //初始化任务
+        //test git
         initTask();
 
         handler = new Handler() {
