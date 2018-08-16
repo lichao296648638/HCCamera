@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/HCCamera.iml" filepath="$PROJECT_DIR$/HCCamera.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/commMonitor/commMonitor.iml" filepath="$PROJECT_DIR$/commMonitor/commMonitor.iml" />
     </modules>
   </component>
 </project>
